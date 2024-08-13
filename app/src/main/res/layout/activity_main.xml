@@ -6,6 +6,7 @@
     android:layout_height="match_parent"
     android:background="@color/blue_layout"
     android:orientation="vertical"
+
     android:paddingHorizontal="16dp">
 
     <FrameLayout
@@ -34,6 +35,7 @@
             android:layout_height="0dp"
             android:layout_marginBottom="@dimen/button_margin"
             android:layout_weight="1"
+            android:textAllCaps="false"
             android:text="@string/button_search"
             android:textColor="@color/black"
             android:textSize="@dimen/primary_text_size"
@@ -51,6 +53,7 @@
             android:layout_height="0dp"
             android:layout_marginBottom="@dimen/button_margin"
             android:layout_weight="1"
+            android:textAllCaps="false"
             android:text="@string/button_media"
             android:textColor="@color/black"
             android:textSize="@dimen/primary_text_size"
@@ -67,6 +70,7 @@
             android:layout_height="0dp"
             android:layout_marginBottom="@dimen/button_margin"
             android:layout_weight="1"
+            android:textAllCaps="false"
             android:text="@string/button_settings"
             android:textColor="@color/black"
             android:textSize="@dimen/primary_text_size"
