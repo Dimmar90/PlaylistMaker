@@ -8,4 +8,6 @@
     <color name="purple_700">#FF3700B3</color>
     <color name="teal_200">#FF03DAC5</color>
     <color name="teal_700">#FF018786</color>
+    <color name="search_bar_grey">#E6E8EB</color>
+    <color name="text_grey">#AEAFB4</color>
 </resources>
