@@ -48,18 +48,15 @@
 
         <androidx.appcompat.widget.SearchView
             android:id="@+id/search_bar"
+            style="@style/SearchViewStyle"
             android:layout_width="match_parent"
             android:layout_height="36dp"
             android:background="@drawable/search_bar"
             android:focusable="true"
             android:theme="@style/SearchViewStyle"
-            app:closeIcon="@drawable/close_frame"
             app:iconifiedByDefault="false"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
             app:queryHint="@string/search"
-            app:searchIcon="@drawable/search_icon_for_toolbar" />
+            />
 
     </LinearLayout>
 
