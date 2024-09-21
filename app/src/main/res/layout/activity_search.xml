@@ -13,10 +13,6 @@
         <com.google.android.material.button.MaterialButton
             android:id="@+id/search_return_button"
             style="@style/SearchReturnButtonStyle"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:layout_gravity="center"
-            android:layout_marginLeft="4dp"
             android:outlineProvider="none"
             app:icon="@drawable/vector"
             app:iconGravity="textStart"
@@ -37,14 +33,11 @@
 
     <LinearLayout
 
+        style="@style/SearchLayoutPaddingStyle"
         android:layout_width="match_parent"
-        android:layout_height="52dp"
+        android:layout_height="wrap_content"
         android:gravity="center"
-        android:orientation="horizontal"
-        android:paddingLeft="16dp"
-        android:paddingTop="8dp"
-        android:paddingRight="16dp"
-        android:paddingBottom="8dp">
+        android:orientation="vertical">
 
         <androidx.appcompat.widget.SearchView
             android:id="@+id/search_bar"
@@ -53,10 +46,23 @@
             android:layout_height="36dp"
             android:background="@drawable/search_bar"
             android:focusable="true"
-            android:theme="@style/SearchViewStyle"
             app:iconifiedByDefault="false"
-            app:queryHint="@string/search"
-            />
+            app:queryHint="@string/search" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        style="@style/SearchLayoutPaddingStyle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:orientation="vertical">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/tracksList"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            tools:listitem="@layout/track_description" />
 
     </LinearLayout>
 
