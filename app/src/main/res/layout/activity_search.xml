@@ -45,26 +45,79 @@
             android:layout_width="match_parent"
             android:layout_height="36dp"
             android:background="@drawable/search_bar"
-            android:focusable="true"
+            android:theme="@style/ThemeOverlay.SearchView"
             app:iconifiedByDefault="false"
             app:queryHint="@string/search" />
 
     </LinearLayout>
 
-    <LinearLayout
+    <RelativeLayout
         style="@style/SearchLayoutPaddingStyle"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="center"
+        android:layout_height="match_parent"
         android:orientation="vertical">
+
+        <LinearLayout
+            android:id="@+id/connection_image_layout"
+            android:layout_width="match_parent"
+            android:layout_height="120dp"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="102dp"
+            android:layout_marginBottom="16dp"
+            android:gravity="center_horizontal">
+
+            <ImageView
+                android:id="@+id/connection_image"
+                android:layout_width="120dp"
+                android:layout_height="120dp"
+                android:gravity="center"
+                android:visibility="invisible" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/layoutConnectionMessage"
+            android:layout_width="match_parent"
+            android:layout_height="88dp"
+            android:layout_below="@+id/connection_image_layout"
+            android:layout_marginBottom="16dp"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/connection_text"
+                style="@style/ConnectedMessageStyle"
+                android:layout_width="match_parent"
+                android:layout_height="20dp"
+                android:gravity="center" />
+
+            <TextView
+                android:id="@+id/extra_connection_text"
+                style="@style/ConnectedMessageStyle"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center|bottom" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/layoutConnectionMessage"
+            android:gravity="center_horizontal">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/update_search_button"
+                style="@style/UpdateSearchButtonStyle"
+                app:cornerRadius="54px"
+                android:visibility="invisible"/>
+
+        </LinearLayout>
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/tracksList"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             tools:listitem="@layout/track_description" />
-
-    </LinearLayout>
-
+    </RelativeLayout>
 
 </LinearLayout>
