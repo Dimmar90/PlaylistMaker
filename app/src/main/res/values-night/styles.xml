@@ -106,6 +106,7 @@
         <item name="android:text">@string/search_update</item>
         <item name="android:textColor">@color/black</item>
         <item name="fontFamily">@font/ys_display_medium</item>
+        <item name="textAllCaps">false</item>
         <item name="android:textSize">11sp</item>
     </style>
 
