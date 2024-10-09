@@ -20,7 +20,7 @@
             app:icon="@drawable/vector"
             app:iconGravity="textStart"
             app:iconPadding="0dp"
-            app:iconSize="@dimen/primary_text_size" />
+            app:iconSize="@dimen/return_button_frame_size" />
 
         <TextView
             style="@style/SettingsTextStyle"

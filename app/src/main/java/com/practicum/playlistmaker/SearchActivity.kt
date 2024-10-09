@@ -65,6 +65,10 @@ class SearchActivity : AppCompatActivity() {
             }
 
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                connectionImage.visibility = View.GONE
+                connectionMessage.visibility = View.GONE
+                connectionExtraMessage.visibility = View.GONE
+                updateButton.visibility = View.GONE
             }
 
             override fun afterTextChanged(s: Editable?) {
@@ -82,6 +86,8 @@ class SearchActivity : AppCompatActivity() {
             connectionMessage.visibility = View.GONE
             connectionExtraMessage.visibility = View.GONE
             updateButton.visibility = View.GONE
+            tracks.clear()
+            recycler.adapter = TracksAdapter(tracks)
 
             val view: View? = this.currentFocus
             if (view != null) {
