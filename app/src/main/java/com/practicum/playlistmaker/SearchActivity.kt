@@ -69,6 +69,8 @@ class SearchActivity : AppCompatActivity() {
                 connectionMessage.visibility = View.GONE
                 connectionExtraMessage.visibility = View.GONE
                 updateButton.visibility = View.GONE
+                tracks.clear()
+                recycler.adapter = TracksAdapter(tracks)
             }
 
             override fun afterTextChanged(s: Editable?) {
