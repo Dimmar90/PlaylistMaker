@@ -14,4 +14,10 @@
         <!-- Customize your theme here. -->
         <item name="android:editTextColor">@color/text_grey</item>
     </style>
+
+    <style name="ThemeOverlay.SearchView" parent="">
+        <item name="android:editTextColor">@color/black</item>
+        <item name="android:textColorHint">@color/black</item>
+        <item name="autoCompleteTextViewStyle">@style/SearchCursorColor</item>
+    </style>
 </resources>
