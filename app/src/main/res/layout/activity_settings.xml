@@ -42,7 +42,9 @@
             style="@style/SettingsMessageTextStyle"
             android:text="@string/dark_theme" />
 
-        <Switch style="@style/SettingsIconStyle" />
+        <Switch
+            android:id="@+id/themeSwitcher"
+            style="@style/SettingsIconStyle" />
 
     </LinearLayout>
 

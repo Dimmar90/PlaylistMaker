@@ -4,12 +4,13 @@ import android.annotation.SuppressLint
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.widget.Switch
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.button.MaterialButton
 
 class SettingsActivity : AppCompatActivity() {
-    @SuppressLint("MissingInflatedId")
+    @SuppressLint("MissingInflatedId", "UseSwitchCompatOrMaterialCode")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_settings)
@@ -18,6 +19,12 @@ class SettingsActivity : AppCompatActivity() {
         returnButton.setOnClickListener {
             val mainIntent = Intent(this, MainActivity::class.java)
             startActivity(mainIntent)
+        }
+
+        val themeSwitcher = findViewById<Switch>(R.id.themeSwitcher)
+        themeSwitcher.setOnCheckedChangeListener { switcher, checked ->
+            (applicationContext as App).switchTheme(checked)
+            (applicationContext as App).putInSharedPreferences()
         }
 
         val sharingButton = findViewById<TextView>(R.id.sharing_button)

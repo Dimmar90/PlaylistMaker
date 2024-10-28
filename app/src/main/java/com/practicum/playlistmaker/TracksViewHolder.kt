@@ -1,8 +1,6 @@
 package com.practicum.playlistmaker
 
-import android.content.Context
 import android.icu.text.SimpleDateFormat
-import android.util.TypedValue
 import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
@@ -11,36 +9,27 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import java.util.Locale
 
-class TracksViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+class TracksViewHolder(itemView: View) :
+    RecyclerView.ViewHolder(itemView) {
 
-    private val trackNameView: TextView
-    private val artistNameView: TextView
-    private val trackTimeView: TextView
-    private val artworkView: ImageView
+    private val trackNameView: TextView = itemView.findViewById(R.id.trackName)
+    private val artistNameView: TextView = itemView.findViewById(R.id.artistName)
+    private val trackTimeView: TextView = itemView.findViewById(R.id.trackTime)
+    private val artworkView: ImageView = itemView.findViewById(R.id.cover)
 
-    init {
-        trackNameView = itemView.findViewById(R.id.trackName)
-        artistNameView = itemView.findViewById(R.id.artistName)
-        trackTimeView = itemView.findViewById(R.id.trackTime)
-        artworkView = itemView.findViewById(R.id.cover)
-    }
-
-    fun dpToPx(dp: Float, context: Context): Int {
-        return TypedValue.applyDimension(
-            TypedValue.COMPLEX_UNIT_DIP,
-            dp,
-            context.resources.displayMetrics).toInt()
-    }
-
-    fun bind(model: Track) {
+    fun bind(model: Track, trackListener: TracksAdapter.TrackListener) {
         trackNameView.text = model.trackName
         artistNameView.text = model.artistName
-        trackTimeView.text = SimpleDateFormat("mm:ss", Locale.getDefault()).format(model.trackTimeMillis)
+        trackTimeView.text =
+            SimpleDateFormat("mm:ss", Locale.getDefault()).format(model.trackTimeMillis)
         Glide.with(itemView)
             .load(model.artworkUrl100)
             .centerInside()
             .transform(RoundedCorners(8))
             .placeholder(R.drawable.placeholder_icon)
             .into(artworkView)
+        itemView.setOnClickListener {
+            trackListener.onTrackClick(model)
+        }
     }
 }

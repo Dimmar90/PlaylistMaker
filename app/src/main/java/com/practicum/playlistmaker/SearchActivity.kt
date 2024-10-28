@@ -11,20 +11,25 @@ import android.view.inputmethod.InputMethodManager
 import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageView
+import android.widget.RelativeLayout
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.SearchView
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.button.MaterialButton
+import com.google.gson.GsonBuilder
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
+const val SEARCH_REFERENCES = "search_activity_preferences"
+const val SEARCH_KEY = "key_for_search"
 
-class SearchActivity : AppCompatActivity() {
+class SearchActivity : AppCompatActivity(), TracksAdapter.TrackListener {
+
     @SuppressLint("MissingInflatedId", "ResourceAsColor", "WrongViewCast")
 
     private var editText: TextView? = null
@@ -37,18 +42,47 @@ class SearchActivity : AppCompatActivity() {
 
     private val itunesService = retrofit.create(ItunesApi::class.java)
 
-    @SuppressLint("MissingInflatedId")
+    private val adapter = TracksAdapter(tracks, this)
+    private val searchHistoryList: ArrayList<Track> = ArrayList()
+
+    private val builder = GsonBuilder()
+    private val gson = builder.create()
+
+    private var historyMap = LinkedHashMap<String, String>()
+    private val historyAdapter = TracksAdapter(searchHistoryList, this)
+
+    @SuppressLint("MissingInflatedId", "CutPasteId")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_search)
 
+        val sharedPrefs = getSharedPreferences(SEARCH_REFERENCES, MODE_PRIVATE)
+        val searchHistoryListRecycler = findViewById<RecyclerView>(R.id.search_history_list)
+
+        val searchHistory =
+            SearchHistory(
+                sharedPrefs,
+                historyMap,
+                searchHistoryList,
+                historyAdapter,
+                adapter,
+                gson,
+                searchHistoryListRecycler
+            )
+
         val recycler = findViewById<RecyclerView>(R.id.tracksList)
         recycler.layoutManager = LinearLayoutManager(this)
+
+        val historyRecycler = findViewById<RecyclerView>(R.id.search_history_list)
+        historyRecycler.layoutManager = LinearLayoutManager(this)
 
         val connectionImage = findViewById<ImageView>(R.id.connection_image)
         val connectionMessage = findViewById<TextView>(R.id.connection_text)
         val connectionExtraMessage = findViewById<TextView>(R.id.extra_connection_text)
         val updateButton = findViewById<Button>(R.id.update_search_button)
+
+        val searchHistoryLayout = findViewById<RelativeLayout>(R.id.search_history)
+        val clearHistoryButton = findViewById<Button>(R.id.clear_history_button)
 
         val returnButton = findViewById<MaterialButton>(R.id.search_return_button)
         returnButton.setOnClickListener {
@@ -57,8 +91,17 @@ class SearchActivity : AppCompatActivity() {
         }
 
         val searchView = findViewById<SearchView>(R.id.search_bar)
+
         editText =
             (searchView.findViewById<EditText>(androidx.appcompat.R.id.search_src_text))
+
+        if (sharedPrefs.getString(SEARCH_KEY, "").toString().isNotEmpty()) {
+            searchHistory.addSearchHistory(sharedPrefs, historyRecycler)
+            (editText as EditText?)!!.setOnFocusChangeListener { _, hasFocus ->
+                searchHistoryLayout.visibility =
+                    if (hasFocus && (editText as EditText?)?.text!!.isEmpty()) View.VISIBLE else View.GONE
+            }
+        }
 
         val textWatcher = object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
@@ -70,7 +113,14 @@ class SearchActivity : AppCompatActivity() {
                 connectionExtraMessage.visibility = View.GONE
                 updateButton.visibility = View.GONE
                 tracks.clear()
-                recycler.adapter = TracksAdapter(tracks)
+                recycler.adapter = adapter
+
+                searchHistoryLayout.visibility =
+                    if ((editText as EditText?)!!.hasFocus() && s?.isEmpty() == true && sharedPrefs.getString(
+                            SEARCH_KEY,
+                            ""
+                        ).toString().isNotEmpty()
+                    ) View.VISIBLE else View.GONE
             }
 
             override fun afterTextChanged(s: Editable?) {
@@ -89,7 +139,7 @@ class SearchActivity : AppCompatActivity() {
             connectionExtraMessage.visibility = View.GONE
             updateButton.visibility = View.GONE
             tracks.clear()
-            recycler.adapter = TracksAdapter(tracks)
+            recycler.adapter = adapter
 
             val view: View? = this.currentFocus
             if (view != null) {
@@ -125,6 +175,10 @@ class SearchActivity : AppCompatActivity() {
                 recycler
             )
         }
+
+        clearHistoryButton.setOnClickListener {
+            searchHistory.clearSearchHistory(sharedPrefs, historyRecycler, searchHistoryLayout)
+        }
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
@@ -151,7 +205,7 @@ class SearchActivity : AppCompatActivity() {
         connectionExtraMessage.visibility = View.GONE
         updateButton.visibility = View.GONE
         tracks.addAll(response.body()?.results!!)
-        recycler.adapter = TracksAdapter(tracks)
+        recycler.adapter = adapter
     }
 
     fun setEmptySearchParameters(
@@ -222,7 +276,7 @@ class SearchActivity : AppCompatActivity() {
                             )
                         } else {
                             tracks.clear()
-                            recycler.adapter = TracksAdapter(tracks)
+                            recycler.adapter = adapter
                             if (!isDarkModeOn()) {
                                 setEmptySearchParameters(
                                     connectionImage,
@@ -248,7 +302,7 @@ class SearchActivity : AppCompatActivity() {
 
                 override fun onFailure(call: Call<TracksResponse>, t: Throwable) {
                     tracks.clear()
-                    recycler.adapter = TracksAdapter(tracks)
+                    recycler.adapter = adapter
                     if (!isDarkModeOn()) {
                         setFailureConnectionParameters(
                             connectionImage,
@@ -272,5 +326,22 @@ class SearchActivity : AppCompatActivity() {
                     }
                 }
             })
+    }
+
+    override fun onTrackClick(track: Track) {
+        val sharedPrefs = getSharedPreferences(SEARCH_REFERENCES, MODE_PRIVATE)
+        val searchHistoryListRecycler = findViewById<RecyclerView>(R.id.search_history_list)
+
+        val searchHistory =
+            SearchHistory(
+                sharedPrefs,
+                historyMap,
+                searchHistoryList,
+                historyAdapter,
+                adapter,
+                gson,
+                searchHistoryListRecycler
+            )
+        searchHistory.onTrackClick(track)
     }
 }

@@ -56,6 +56,57 @@
         android:layout_height="match_parent"
         android:orientation="vertical">
 
+        <RelativeLayout
+            android:id="@+id/search_history"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:visibility="invisible">
+
+            <LinearLayout
+                android:id="@+id/search_history_title_layout"
+                android:layout_width="match_parent"
+                android:layout_height="52dp">
+
+                <TextView
+                    android:id="@+id/search_history_title"
+                    style="@style/SearchHistoryTitleStyle"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="center" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/search_history_list_layout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/search_history_title_layout"
+                android:layout_marginTop="8dp"
+                android:orientation="vertical">
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/search_history_list"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    tools:listitem="@layout/track_description" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/clear_history_button_layout"
+                android:layout_width="match_parent"
+                android:layout_height="36dp"
+                android:layout_below="@+id/search_history_list_layout"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/clear_history_button"
+                    style="@style/ClearSearchStoryButtonStyle"
+                    android:layout_height="match_parent"
+                    app:cornerRadius="54px" />
+            </LinearLayout>
+
+        </RelativeLayout>
+
         <LinearLayout
             android:id="@+id/connection_image_layout"
             android:layout_width="match_parent"
