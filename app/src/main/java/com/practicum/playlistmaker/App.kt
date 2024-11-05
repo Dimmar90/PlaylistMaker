@@ -5,13 +5,15 @@ import android.content.SharedPreferences
 import androidx.appcompat.app.AppCompatDelegate
 
 const val SETTINGS_KEY = "key_for_settings"
+const val nightMode = "MODE_NIGHT_YES"
+const val dayMode = "MODE_NIGHT_NO"
 
 class App : Application() {
 
     private var darkTheme = false
 
     fun switchTheme(darkThemeEnabled: Boolean) {
-        darkTheme = darkThemeEnabled
+               darkTheme = darkThemeEnabled
         AppCompatDelegate.setDefaultNightMode(
             if (darkThemeEnabled) {
                 AppCompatDelegate.MODE_NIGHT_YES
@@ -26,11 +28,11 @@ class App : Application() {
         sharedPrefs.edit().clear().apply()
         if (darkTheme) {
             sharedPrefs.edit()
-                .putString(SETTINGS_KEY, "MODE_NIGHT_YES")
+                .putString(SETTINGS_KEY, nightMode)
                 .apply()
         } else {
             sharedPrefs.edit()
-                .putString(SETTINGS_KEY, "MODE_NIGHT_NO")
+                .putString(SETTINGS_KEY, dayMode)
                 .apply()
         }
     }

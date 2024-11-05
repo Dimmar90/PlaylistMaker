@@ -9,17 +9,17 @@ import com.google.android.material.button.MaterialButton
 const val SETTINGS_REFERENCES = "settings_activity_preferences"
 
 class MainActivity : AppCompatActivity() {
-    @SuppressLint("MissingInflatedId")
+    @SuppressLint("MissingInflatedId", "UseSwitchCompatOrMaterialCode")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
         val sharedPrefs = getSharedPreferences(SETTINGS_REFERENCES, MODE_PRIVATE)
-        var app = App()
+        val app = App()
         val json = sharedPrefs.getString(SETTINGS_KEY, "")
 
-        if (json.equals("MODE_NIGHT_YES")) {
-                app.switchTheme(true)
+        if (json == "MODE_NIGHT_YES") {
+            app.switchTheme(true)
         }
 
         val searchButton = findViewById<MaterialButton>(R.id.search_button)
