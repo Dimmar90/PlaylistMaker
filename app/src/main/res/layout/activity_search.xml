@@ -76,33 +76,47 @@
             </LinearLayout>
 
             <LinearLayout
-                android:id="@+id/search_history_list_layout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_below="@+id/search_history_title_layout"
-                android:layout_marginTop="8dp"
                 android:orientation="vertical">
 
-                <androidx.recyclerview.widget.RecyclerView
-                    android:id="@+id/search_history_list"
+                <androidx.core.widget.NestedScrollView
+                    android:id="@+id/scroll_view"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    tools:listitem="@layout/track_description" />
-            </LinearLayout>
+                    android:layout_height="0dp"
+                    android:layout_weight="1">
 
-            <LinearLayout
-                android:id="@+id/clear_history_button_layout"
-                android:layout_width="match_parent"
-                android:layout_height="36dp"
-                android:layout_below="@+id/search_history_list_layout"
-                android:gravity="center"
-                android:orientation="vertical">
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:orientation="vertical"
+                        android:paddingBottom="12dp">
 
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/clear_history_button"
-                    style="@style/ClearSearchStoryButtonStyle"
-                    android:layout_height="match_parent"
-                    app:cornerRadius="54px" />
+                        <androidx.recyclerview.widget.RecyclerView
+                            android:id="@+id/search_history_list"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            tools:listitem="@layout/track_description" />
+
+                    </LinearLayout>
+
+                </androidx.core.widget.NestedScrollView>
+
+                <LinearLayout
+                    android:id="@+id/clear_history_button_layout"
+                    android:layout_width="match_parent"
+                    android:layout_height="36dp"
+                    android:gravity="center"
+                    android:orientation="vertical">
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/clear_history_button"
+                        style="@style/ClearSearchStoryButtonStyle"
+                        android:layout_height="match_parent"
+                        app:cornerRadius="54px" />
+                </LinearLayout>
+
             </LinearLayout>
 
         </RelativeLayout>

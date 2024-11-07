@@ -88,7 +88,7 @@ class SearchActivity : AppCompatActivity(), TracksAdapter.TrackListener {
             addSearchHistory(sharedPrefs, historyRecycler)
             (editText).setOnFocusChangeListener { _, hasFocus ->
                 searchHistoryLayout.visibility =
-                    if (editText.text.isEmpty()) View.VISIBLE else View.GONE
+                    if (editText.text.isEmpty() && searchHistoryList.isNotEmpty()) View.VISIBLE else View.GONE
             }
         }
 
@@ -121,6 +121,10 @@ class SearchActivity : AppCompatActivity(), TracksAdapter.TrackListener {
         val closeButton = searchView.findViewById<ImageView>(searchCloseButtonId)
         closeButton.setOnClickListener {
             editText.text.clear()
+
+            if (historyMap.isNotEmpty()) {
+                searchHistoryLayout.visibility = View.VISIBLE
+            }
 
             connectionImage.visibility = View.GONE
             connectionMessage.visibility = View.GONE
