@@ -13,7 +13,7 @@ class App : Application() {
     private var darkTheme = false
 
     fun switchTheme(darkThemeEnabled: Boolean) {
-               darkTheme = darkThemeEnabled
+        darkTheme = darkThemeEnabled
         AppCompatDelegate.setDefaultNightMode(
             if (darkThemeEnabled) {
                 AppCompatDelegate.MODE_NIGHT_YES
