@@ -20,4 +20,5 @@
         <item name="android:textColorHint">@color/text_grey</item>
         <item name="autoCompleteTextViewStyle">@style/SearchCursorColor</item>
     </style>
+    
 </resources>

@@ -1,6 +1,7 @@
 package com.practicum.playlistmaker
 
 import android.annotation.SuppressLint
+import android.content.Intent
 import android.content.SharedPreferences
 import android.content.res.Configuration
 import android.os.Bundle
@@ -316,6 +317,11 @@ class SearchActivity : AppCompatActivity(), TracksAdapter.TrackListener {
     }
 
     override fun onTrackClick(track: Track) {
+
+        val intent = Intent(this, PlayerActivity::class.java)
+        intent.putExtra("track", track)
+        startActivity(intent)
+
         val trackGson = Gson().toJson(track)
         val sharedPrefs = getSharedPreferences(SEARCH_REFERENCES, MODE_PRIVATE)
         val searchHistoryListRecycler = findViewById<RecyclerView>(R.id.search_history_list)

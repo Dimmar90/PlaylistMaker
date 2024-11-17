@@ -38,41 +38,38 @@
                 android:orientation="horizontal">
 
                 <TextView
-                    style="@style/TrackDescriptionStyle"
                     android:id="@+id/artistName"
+                    style="@style/TrackDescriptionStyle"
                     android:layout_width="wrap_content"
                     android:layout_height="match_parent"
                     android:gravity="center_vertical"
                     android:text="artistName"
-                    android:textSize="@dimen/track_description_text_size"
-                    />
+                    android:textSize="@dimen/track_description_text_size" />
 
                 <TextView
                     style="@style/EllipseStyle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:gravity="bottom"
                     android:layout_marginLeft="5dp"
                     android:layout_marginRight="5dp"
-                    />
+                    android:gravity="bottom" />
 
                 <TextView
-                    style="@style/TrackDescriptionStyle"
                     android:id="@+id/trackTime"
+                    style="@style/TrackDescriptionStyle"
                     android:layout_width="wrap_content"
                     android:layout_height="match_parent"
                     android:gravity="center_vertical"
                     android:text="trackTime"
                     android:textSize="@dimen/track_description_text_size" />
-
             </LinearLayout>
 
         </LinearLayout>
 
         <TextView
-            style = "@style/ArrowStyle"
+            style="@style/ArrowStyle"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"/>
+            android:layout_height="match_parent" />
 
     </LinearLayout>
 
