@@ -4,20 +4,33 @@ import android.annotation.SuppressLint
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.widget.Switch
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.button.MaterialButton
 
+
 class SettingsActivity : AppCompatActivity() {
-    @SuppressLint("MissingInflatedId")
+    @SuppressLint("MissingInflatedId", "UseSwitchCompatOrMaterialCode", "CommitPrefEdits")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_settings)
 
+        val settingsPrefs = getSharedPreferences("settings", MODE_PRIVATE)
+        val switchState = settingsPrefs.getBoolean("switchState", true)
+        val themeSwitcher = findViewById<Switch>(R.id.themeSwitcher)
+
+        themeSwitcher.setChecked(switchState)
+
         val returnButton = findViewById<MaterialButton>(R.id.return_button)
         returnButton.setOnClickListener {
-            val mainIntent = Intent(this, MainActivity::class.java)
-            startActivity(mainIntent)
+            finish()
+        }
+
+        themeSwitcher.setOnCheckedChangeListener { switcher, checked ->
+            (applicationContext as App).switchTheme(checked)
+            (applicationContext as App).putInSharedPreferences()
+            settingsPrefs.edit().putBoolean("switchState", themeSwitcher.isChecked).apply()
         }
 
         val sharingButton = findViewById<TextView>(R.id.sharing_button)

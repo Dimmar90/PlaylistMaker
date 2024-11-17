@@ -6,11 +6,19 @@ import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.button.MaterialButton
 
+const val SETTINGS_REFERENCES = "settings_activity_preferences"
+
 class MainActivity : AppCompatActivity() {
-    @SuppressLint("MissingInflatedId")
+    @SuppressLint("MissingInflatedId", "UseSwitchCompatOrMaterialCode")
+    val app = App()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        val sharedPrefs = getSharedPreferences(SETTINGS_REFERENCES, MODE_PRIVATE)
+        val json = sharedPrefs.getString(SETTINGS_KEY, "")
+        switchTheme(json.toString())
 
         val searchButton = findViewById<MaterialButton>(R.id.search_button)
         searchButton.setOnClickListener {
@@ -28,6 +36,14 @@ class MainActivity : AppCompatActivity() {
         settingsButton.setOnClickListener {
             val settingsIntent = Intent(this, SettingsActivity::class.java)
             startActivity(settingsIntent)
+        }
+    }
+
+    private fun switchTheme(json: String) {
+        if (json == "MODE_NIGHT_YES") {
+            app.switchTheme(true)
+        } else {
+            app.switchTheme(false)
         }
     }
 }
