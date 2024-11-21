@@ -4,10 +4,10 @@
     <selectionStates>
       <SelectionState runConfigName="PlaylistMaker">
         <option name="selectionMode" value="DROPDOWN" />
-        <DropdownSelection timestamp="2024-11-13T20:12:41.709726Z">
+        <DropdownSelection timestamp="2024-11-21T12:56:56.484155Z">
           <Target type="DEFAULT_BOOT">
             <handle>
-              <DeviceId pluginId="LocalEmulator" identifier="path=/Users/Dmitriy/.android/avd/Pixel_7a_API_31.avd" />
+              <DeviceId pluginId="LocalEmulator" identifier="path=/Users/Dmitriy/.android/avd/Pixel_8_API_31.avd" />
             </handle>
           </Target>
         </DropdownSelection>
