@@ -5,12 +5,15 @@ import android.content.Intent
 import android.content.SharedPreferences
 import android.content.res.Configuration
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.text.Editable
 import android.view.View
 import android.view.inputmethod.InputMethodManager
 import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageView
+import android.widget.ProgressBar
 import android.widget.RelativeLayout
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
@@ -54,6 +57,12 @@ class SearchActivity : AppCompatActivity(), TracksAdapter.TrackListener {
     private var historyMap = mutableMapOf<String, String>()
     private val historyAdapter = TracksAdapter(searchHistoryList, this)
 
+    companion object {
+        private const val SEARCH_DEBOUNCE_DELAY = 2000L
+    }
+
+    private val handler = Handler(Looper.getMainLooper())
+
     @SuppressLint("MissingInflatedId", "CutPasteId")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -72,6 +81,7 @@ class SearchActivity : AppCompatActivity(), TracksAdapter.TrackListener {
         val connectionMessage = findViewById<TextView>(R.id.connection_text)
         val connectionExtraMessage = findViewById<TextView>(R.id.extra_connection_text)
         val updateButton = findViewById<Button>(R.id.update_search_button)
+        val progressBar = findViewById<ProgressBar>(R.id.progressBar)
 
         val clearHistoryButton = findViewById<Button>(R.id.clear_history_button)
 
@@ -93,6 +103,18 @@ class SearchActivity : AppCompatActivity(), TracksAdapter.TrackListener {
             }
         }
 
+        val searchRunnable = Runnable {
+            itunesServiceSearch(
+                connectionImage,
+                connectionMessage,
+                connectionExtraMessage,
+                updateButton,
+                recycler,
+                editText,
+                progressBar
+            )
+        }
+
         editText.addTextChangedListener(
             beforeTextChanged = { _: CharSequence?, _, _, _ -> },
             onTextChanged = { s: CharSequence?, _, _, _ ->
@@ -102,6 +124,8 @@ class SearchActivity : AppCompatActivity(), TracksAdapter.TrackListener {
                 updateButton.visibility = View.GONE
                 tracks.clear()
                 recycler.adapter = adapter
+
+                searchDebounce(searchRunnable)
 
                 searchHistoryLayout.visibility =
                     if (editText.hasFocus() && s?.isEmpty() == true && sharedPrefs.getString(
@@ -149,7 +173,9 @@ class SearchActivity : AppCompatActivity(), TracksAdapter.TrackListener {
                     connectionMessage,
                     connectionExtraMessage,
                     updateButton,
-                    recycler
+                    recycler,
+                    editText,
+                    progressBar
                 )
                 return true
             }
@@ -165,7 +191,9 @@ class SearchActivity : AppCompatActivity(), TracksAdapter.TrackListener {
                 connectionMessage,
                 connectionExtraMessage,
                 updateButton,
-                recycler
+                recycler,
+                editText,
+                progressBar
             )
         }
 
@@ -241,9 +269,12 @@ class SearchActivity : AppCompatActivity(), TracksAdapter.TrackListener {
         connectionMessage: TextView,
         connectionExtraMessage: TextView,
         updateButton: Button,
-        recycler: RecyclerView
+        recycler: RecyclerView,
+        text: EditText,
+        progressBar: ProgressBar
     ) {
         val nameOfSearchingTrack: Editable? = editText.text
+        progressBar.visibility = View.VISIBLE
         itunesService
             .search(nameOfSearchingTrack.toString())
             .enqueue(object : Callback<TracksResponse> {
@@ -252,6 +283,7 @@ class SearchActivity : AppCompatActivity(), TracksAdapter.TrackListener {
                     call: Call<TracksResponse>,
                     response: Response<TracksResponse>
                 ) {
+                    progressBar.visibility = View.GONE
                     if (response.code() == 200) {
                         if (response.body()?.results?.isNotEmpty() == true) {
                             getSearchingTracks(
@@ -262,7 +294,7 @@ class SearchActivity : AppCompatActivity(), TracksAdapter.TrackListener {
                                 response,
                                 recycler
                             )
-                        } else {
+                        } else if (text.text.isNotEmpty()) {
                             tracks.clear()
                             recycler.adapter = adapter
                             if (!isDarkModeOn()) {
@@ -290,6 +322,7 @@ class SearchActivity : AppCompatActivity(), TracksAdapter.TrackListener {
 
                 override fun onFailure(call: Call<TracksResponse>, t: Throwable) {
                     tracks.clear()
+                    progressBar.visibility = View.GONE
                     recycler.adapter = adapter
                     if (!isDarkModeOn()) {
                         setFailureConnectionParameters(
@@ -314,6 +347,11 @@ class SearchActivity : AppCompatActivity(), TracksAdapter.TrackListener {
                     }
                 }
             })
+    }
+
+    private fun searchDebounce(searchRunnable: Runnable) {
+        handler.removeCallbacks(searchRunnable)
+        handler.postDelayed(searchRunnable, SEARCH_DEBOUNCE_DELAY)
     }
 
     override fun onTrackClick(track: Track) {
