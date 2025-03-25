@@ -1,4 +1,4 @@
-package com.practicum.playlistmaker
+package com.practicum.playlistmaker.player.ui
 
 import android.annotation.SuppressLint
 import android.icu.text.SimpleDateFormat
@@ -15,6 +15,7 @@ import androidx.appcompat.app.AppCompatActivity
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.google.android.material.button.MaterialButton
+import com.practicum.playlistmaker.R
 import java.util.Locale
 
 class PlayerActivity : AppCompatActivity() {
@@ -38,7 +39,15 @@ class PlayerActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_audio_player)
 
-        val track: Track = intent.getParcelableExtra("track")!!
+        val trackName = intent.getStringExtra("trackName").toString()
+        val trackPreviewUrl = intent.getStringExtra("previewUrl").toString()
+        val trackArtworkUrl = intent.getStringExtra("artworkUrl100")
+        val artistName = intent.getStringExtra("artistName").toString()
+        val trackDuration = intent.getIntExtra("trackTimeMillis", 0)
+        val collectionName = intent.getStringExtra("collectionName").toString()
+        val releaseDate = intent.getStringExtra("releaseDate").toString()
+        val primaryGenreName = intent.getStringExtra("primaryGenreName").toString()
+        val country = intent.getStringExtra("country").toString()
         val playerTime = findViewById<TextView>(R.id.player_time)
 
         val runnable: Runnable = object : Runnable {
@@ -48,10 +57,18 @@ class PlayerActivity : AppCompatActivity() {
             }
         }
 
-        preparePlayer(track.previewUrl)
+        preparePlayer(trackPreviewUrl)
         returnToMedia(runnable)
-        getTrackCover(track.artworkUrl100.replaceAfterLast('/', "512x512bb.jpg"))
-        addTrackTitles(track)
+        getTrackCover(trackArtworkUrl!!.replaceAfterLast('/', "512x512bb.jpg"))
+        addTrackTitles(
+            trackName,
+            artistName,
+            trackDuration,
+            collectionName,
+            releaseDate,
+            primaryGenreName,
+            country
+        )
         playTrack(runnable, playerTime)
         addToMedia()
 
@@ -81,28 +98,31 @@ class PlayerActivity : AppCompatActivity() {
             .into(trackCover)
     }
 
-    private fun addTrackTitles(track: Track) {
-        val songTitle = findViewById<TextView>(R.id.song_title)
-        songTitle.text = track.trackName
+    private fun addTrackTitles(
+        trackName: String, artistName: String, trackDuration: Int,
+        collectionName: String, releaseDate: String, primaryGenreName: String, country: String
+    ) {
+        val songTitleView = findViewById<TextView>(R.id.song_title)
+        songTitleView.text = trackName
 
-        val artistName = findViewById<TextView>(R.id.artist_name)
-        artistName.text = track.artistName
+        val artistNameView = findViewById<TextView>(R.id.artist_name)
+        artistNameView.text = artistName
 
-        val trackDuration = findViewById<TextView>(R.id.track_duration)
-        trackDuration.text =
-            SimpleDateFormat("mm:ss", Locale.getDefault()).format(track.trackTimeMillis)
+        val trackDurationView = findViewById<TextView>(R.id.track_duration)
+        trackDurationView.text =
+            SimpleDateFormat("mm:ss", Locale.getDefault()).format(trackDuration)
 
-        val collectionName = findViewById<TextView>(R.id.track_collectionName)
-        collectionName.text = track.collectionName
+        val collectionNameView = findViewById<TextView>(R.id.track_collectionName)
+        collectionNameView.text = collectionName
 
-        val releaseDate = findViewById<TextView>(R.id.track_releaseDate)
-        releaseDate.text = track.releaseDate.take(4)
+        val releaseDateView = findViewById<TextView>(R.id.track_releaseDate)
+        releaseDateView.text = releaseDate.take(4)
 
-        val primaryGenreName = findViewById<TextView>(R.id.track_primaryGenreName)
-        primaryGenreName.text = track.primaryGenreName
+        val primaryGenreNameView = findViewById<TextView>(R.id.track_primaryGenreName)
+        primaryGenreNameView.text = primaryGenreName
 
-        val country = findViewById<TextView>(R.id.track_country)
-        country.text = track.country
+        val countryView = findViewById<TextView>(R.id.track_country)
+        countryView.text = country
     }
 
     private fun playTrack(runnable: Runnable, playerTime: TextView) {
@@ -156,7 +176,8 @@ class PlayerActivity : AppCompatActivity() {
     }
 
     private fun refreshPlayerTime(playerTime: TextView) {
-        playerTime.text = SimpleDateFormat("mm:ss", Locale.getDefault()).format(mediaPlayer.currentPosition)
+        playerTime.text =
+            SimpleDateFormat("mm:ss", Locale.getDefault()).format(mediaPlayer.currentPosition)
     }
 
     private fun startRunnable(runnable: Runnable) {

@@ -1,10 +1,17 @@
-package com.practicum.playlistmaker
+package com.practicum.playlistmaker.main.ui
+
 
 import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.button.MaterialButton
+import com.practicum.playlistmaker.R
+import com.practicum.playlistmaker.application.App
+import com.practicum.playlistmaker.application.SETTINGS_KEY
+import com.practicum.playlistmaker.media.ui.MediaActivity
+import com.practicum.playlistmaker.search.ui.SearchActivity
+import com.practicum.playlistmaker.settings.ui.SettingsActivity
 
 const val SETTINGS_REFERENCES = "settings_activity_preferences"
 

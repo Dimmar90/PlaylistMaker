@@ -1,8 +1,9 @@
-package com.practicum.playlistmaker
+package com.practicum.playlistmaker.application
 
 import android.app.Application
 import android.content.SharedPreferences
 import androidx.appcompat.app.AppCompatDelegate
+import com.practicum.playlistmaker.main.ui.SETTINGS_REFERENCES
 
 const val SETTINGS_KEY = "key_for_settings"
 const val nightMode = "MODE_NIGHT_YES"
