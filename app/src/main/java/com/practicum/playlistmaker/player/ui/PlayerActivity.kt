@@ -1,11 +1,9 @@
 package com.practicum.playlistmaker.player.ui
 
+import Creator
 import android.annotation.SuppressLint
 import android.icu.text.SimpleDateFormat
-import android.media.MediaPlayer
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.TextView
@@ -20,20 +18,8 @@ import java.util.Locale
 
 class PlayerActivity : AppCompatActivity() {
 
-    companion object {
-        private const val STATE_DEFAULT = 0
-        private const val STATE_PREPARED = 1
-        private const val STATE_PLAYING = 2
-        private const val STATE_PAUSED = 3
-        private const val REFRESH_PLAYER_TIME_DELAY_MILLIS = 1000L
-    }
+    private var playerInteractor = Creator.providePlayerInteractor()
 
-    private var playerState = STATE_DEFAULT
-    private var mediaPlayer = MediaPlayer()
-
-    private val handler = Handler(Looper.getMainLooper())
-
-    @Suppress("DEPRECATION")
     @SuppressLint("MissingInflatedId")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -52,12 +38,11 @@ class PlayerActivity : AppCompatActivity() {
 
         val runnable: Runnable = object : Runnable {
             override fun run() {
-                refreshPlayerTime(playerTime)
-                handler.postDelayed(this, REFRESH_PLAYER_TIME_DELAY_MILLIS)
+                playerInteractor.refreshPlayerTime(this, playerTime)
             }
         }
 
-        preparePlayer(trackPreviewUrl)
+        playerInteractor.preparePlayer(trackPreviewUrl)
         returnToMedia(runnable)
         getTrackCover(trackArtworkUrl!!.replaceAfterLast('/', "512x512bb.jpg"))
         addTrackTitles(
@@ -74,7 +59,7 @@ class PlayerActivity : AppCompatActivity() {
 
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
-                pausePlayer(runnable)
+                playerInteractor.pausePlayer(runnable)
                 finish()
             }
         })
@@ -83,7 +68,7 @@ class PlayerActivity : AppCompatActivity() {
     private fun returnToMedia(runnable: Runnable) {
         val returnButton = findViewById<ImageButton>(R.id.player_return_button)
         returnButton.setOnClickListener {
-            pausePlayer(runnable)
+            playerInteractor.pausePlayer(runnable)
             finish()
         }
     }
@@ -127,65 +112,26 @@ class PlayerActivity : AppCompatActivity() {
 
     private fun playTrack(runnable: Runnable, playerTime: TextView) {
         val playTrackButton = findViewById<MaterialButton>(R.id.play_track_button)
+
         playTrackButton.setOnClickListener {
-            playbackControl(runnable)
-        }
-        mediaPlayer.setOnCompletionListener {
-            pausePlayer(runnable)
-            playerTime.text = "00:00"
+            playbackControl(runnable, playerTime)
         }
     }
 
-    private fun preparePlayer(url: String) {
-        mediaPlayer.setDataSource(url)
-        mediaPlayer.prepareAsync()
-        mediaPlayer.setOnPreparedListener {
-            playerState = STATE_PREPARED
-        }
-        mediaPlayer.setOnCompletionListener {
-            playerState = STATE_PREPARED
-        }
-    }
+    private fun playbackControl(runnable: Runnable, playerTime: TextView) {
+        val playTrackButton = findViewById<MaterialButton>(R.id.play_track_button)
+        playerInteractor.setOnCompletionListener(runnable, playerTime, playTrackButton)
+        val state = playerInteractor.playbackControl(runnable)
 
-    private fun playbackControl(runnable: Runnable) {
-        when (playerState) {
-            STATE_PLAYING -> {
-                pausePlayer(runnable)
+        when (state) {
+            2 -> {
+                playTrackButton.setIconResource(R.drawable.play_track_button_icon)
             }
 
-            STATE_PREPARED, STATE_PAUSED -> {
-                startPlayer(runnable)
+            3 -> {
+                playTrackButton.setIconResource(R.drawable.pause_button)
             }
         }
-    }
-
-    private fun startPlayer(runnable: Runnable) {
-        mediaPlayer.start()
-        startRunnable(runnable)
-        val playTrackButton = findViewById<MaterialButton>(R.id.play_track_button)
-        playTrackButton.setIconResource(R.drawable.pause_button)
-        playerState = STATE_PLAYING
-    }
-
-    private fun pausePlayer(runnable: Runnable) {
-        mediaPlayer.pause()
-        stopRunnable(runnable)
-        val playTrackButton = findViewById<MaterialButton>(R.id.play_track_button)
-        playTrackButton.setIconResource(R.drawable.play_track_button_icon)
-        playerState = STATE_PAUSED
-    }
-
-    private fun refreshPlayerTime(playerTime: TextView) {
-        playerTime.text =
-            SimpleDateFormat("mm:ss", Locale.getDefault()).format(mediaPlayer.currentPosition)
-    }
-
-    private fun startRunnable(runnable: Runnable) {
-        runnable.run()
-    }
-
-    private fun stopRunnable(runnable: Runnable) {
-        handler.removeCallbacks(runnable)
     }
 
     private fun addToMedia() {
