@@ -1,4 +1,4 @@
-package com.practicum.playlistmaker
+package com.practicum.playlistmaker.search.ui
 
 import android.icu.text.SimpleDateFormat
 import android.view.View
@@ -7,6 +7,8 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
+import com.practicum.playlistmaker.R
+import com.practicum.playlistmaker.search.data.dto.TrackDto
 import java.util.Locale
 
 open class TracksViewHolder(itemView: View) :
@@ -17,7 +19,7 @@ open class TracksViewHolder(itemView: View) :
     private val trackTimeView: TextView = itemView.findViewById(R.id.trackTime)
     private val artworkView: ImageView = itemView.findViewById(R.id.cover)
 
-    fun bind(model: Track, trackListener: TracksAdapter.TrackListener) {
+    fun bind(model: TrackDto, trackListener: TracksAdapter.TrackListener) {
         trackNameView.text = model.trackName
         artistNameView.text = model.artistName
         trackTimeView.text =

@@ -1,8 +1,8 @@
-package com.practicum.playlistmaker
+package com.practicum.playlistmaker.search.ui
 
+import Creator
 import android.annotation.SuppressLint
 import android.content.Intent
-import android.content.SharedPreferences
 import android.content.res.Configuration
 import android.os.Bundle
 import android.os.Handler
@@ -23,12 +23,14 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.button.MaterialButton
 import com.google.gson.Gson
-import com.google.gson.GsonBuilder
+import com.practicum.playlistmaker.R
+import com.practicum.playlistmaker.player.ui.PlayerActivity
+import com.practicum.playlistmaker.search.data.dto.TrackDto
+import com.practicum.playlistmaker.search.data.dto.TracksSearchResponse
+import com.practicum.playlistmaker.search.data.network.RetrofitNetworkClient
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
-import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
 
 private const val SEARCH_REFERENCES = "search_activity_preferences"
 const val SEARCH_KEY = "key_for_search"
@@ -39,20 +41,14 @@ class SearchActivity : AppCompatActivity(), TracksAdapter.TrackListener {
 
     private lateinit var editText: EditText
 
-    private var tracks: ArrayList<Track> = ArrayList()
+    private var tracks: ArrayList<TrackDto> = ArrayList()
 
-    private val retrofit = Retrofit.Builder()
-        .baseUrl("https://itunes.apple.com")
-        .addConverterFactory(GsonConverterFactory.create())
-        .build()
-
-    private val itunesService = retrofit.create(ItunesApi::class.java)
+    private val retrofit = RetrofitNetworkClient()
+    private val itunesService = retrofit.getService()
 
     private val adapter = TracksAdapter(tracks, this)
-    private val searchHistoryList = mutableListOf<Track>()
 
-    private val builder = GsonBuilder()
-    private val gson = builder.create()
+    private val searchHistoryList = mutableListOf<TrackDto>()
 
     private var historyMap = mutableMapOf<String, String>()
     private val historyAdapter = TracksAdapter(searchHistoryList, this)
@@ -85,18 +81,21 @@ class SearchActivity : AppCompatActivity(), TracksAdapter.TrackListener {
 
         val clearHistoryButton = findViewById<Button>(R.id.clear_history_button)
 
+        val searchHistoryInteractor = Creator.provideSearchHistoryInteractor(this)
+        val searchHistoryListRecycler = RecyclerView(this)
+
         val returnButton = findViewById<MaterialButton>(R.id.search_return_button)
         returnButton.setOnClickListener {
             finish()
         }
 
         val searchView = findViewById<SearchView>(R.id.search_bar)
-
         editText =
             (searchView.findViewById(androidx.appcompat.R.id.search_src_text))
 
         if (sharedPrefs.getString(SEARCH_KEY, "").toString().isNotEmpty()) {
-            addSearchHistory(sharedPrefs, historyRecycler)
+            val historyListOfTracks = searchHistoryInteractor.getHistory(searchHistoryListRecycler)
+            addSearchHistory(historyListOfTracks, historyRecycler)
             (editText).setOnFocusChangeListener { _, hasFocus ->
                 searchHistoryLayout.visibility =
                     if (editText.text.isEmpty() && searchHistoryList.isNotEmpty()) View.VISIBLE else View.GONE
@@ -137,19 +136,11 @@ class SearchActivity : AppCompatActivity(), TracksAdapter.TrackListener {
             afterTextChanged = { _ -> }
         )
 
-        if (historyMap.isNotEmpty()) {
-            searchHistoryLayout.visibility = View.VISIBLE
-        }
-
         val searchCloseButtonId =
             searchView.findViewById<View>(androidx.appcompat.R.id.search_close_btn).id
         val closeButton = searchView.findViewById<ImageView>(searchCloseButtonId)
         closeButton.setOnClickListener {
             editText.text.clear()
-
-            if (historyMap.isNotEmpty()) {
-                searchHistoryLayout.visibility = View.VISIBLE
-            }
 
             connectionImage.visibility = View.GONE
             connectionMessage.visibility = View.GONE
@@ -198,7 +189,7 @@ class SearchActivity : AppCompatActivity(), TracksAdapter.TrackListener {
         }
 
         clearHistoryButton.setOnClickListener {
-            clearSearchHistory(sharedPrefs, historyRecycler, searchHistoryLayout)
+            clearSearchHistory(historyRecycler, searchHistoryLayout)
         }
     }
 
@@ -212,10 +203,11 @@ class SearchActivity : AppCompatActivity(), TracksAdapter.TrackListener {
         connectionMessage: TextView,
         connectionExtraMessage: TextView,
         updateButton: Button,
-        response: Response<TracksResponse>,
+        response: Response<TracksSearchResponse>,
         recycler: RecyclerView
     ) {
         tracks.clear()
+
         connectionImage.visibility = View.GONE
         connectionMessage.visibility = View.GONE
         connectionExtraMessage.visibility = View.GONE
@@ -275,13 +267,14 @@ class SearchActivity : AppCompatActivity(), TracksAdapter.TrackListener {
     ) {
         val nameOfSearchingTrack: Editable? = editText.text
         progressBar.visibility = View.VISIBLE
+
         itunesService
             .search(nameOfSearchingTrack.toString())
-            .enqueue(object : Callback<TracksResponse> {
+            .enqueue(object : Callback<TracksSearchResponse> {
                 @SuppressLint("NotifyDataSetChanged")
                 override fun onResponse(
-                    call: Call<TracksResponse>,
-                    response: Response<TracksResponse>
+                    call: Call<TracksSearchResponse>,
+                    response: Response<TracksSearchResponse>
                 ) {
                     progressBar.visibility = View.GONE
                     if (response.code() == 200) {
@@ -320,7 +313,7 @@ class SearchActivity : AppCompatActivity(), TracksAdapter.TrackListener {
                     }
                 }
 
-                override fun onFailure(call: Call<TracksResponse>, t: Throwable) {
+                override fun onFailure(call: Call<TracksSearchResponse>, t: Throwable) {
                     tracks.clear()
                     progressBar.visibility = View.GONE
                     recycler.adapter = adapter
@@ -354,15 +347,16 @@ class SearchActivity : AppCompatActivity(), TracksAdapter.TrackListener {
         handler.postDelayed(searchRunnable, SEARCH_DEBOUNCE_DELAY)
     }
 
-    override fun onTrackClick(track: Track) {
-
+    override fun onTrackClick(track: TrackDto) {
         val intent = Intent(this, PlayerActivity::class.java)
-        intent.putExtra("track", track)
+
+        putExtras(intent, track)
+
         startActivity(intent)
 
         val trackGson = Gson().toJson(track)
-        val sharedPrefs = getSharedPreferences(SEARCH_REFERENCES, MODE_PRIVATE)
         val searchHistoryListRecycler = findViewById<RecyclerView>(R.id.search_history_list)
+        val searchHistoryInteractor = Creator.provideSearchHistoryInteractor(this)
 
         if (historyMap.keys.contains(track.trackId)) {
             historyMap.remove(track.trackId)
@@ -377,23 +371,19 @@ class SearchActivity : AppCompatActivity(), TracksAdapter.TrackListener {
         historyMap[track.trackId] = trackGson
         searchHistoryList.add(0, track)
 
-        sharedPrefs.edit()
-            .putString(SEARCH_KEY, historyMap.values.toString())
-            .apply()
+        searchHistoryInteractor.saveHistory(historyMap)
 
         searchHistoryListRecycler.layoutManager = LinearLayoutManager(this)
         searchHistoryListRecycler.adapter = historyAdapter
     }
 
     private fun addSearchHistory(
-        sharedPrefs: SharedPreferences,
+        historyList: MutableList<TrackDto>,
         searchHistoryListRecycler: RecyclerView
     ) {
-        val json = sharedPrefs.getString(SEARCH_KEY, "")
-        val historyList: List<Track> = gson.fromJson(json, Array<Track>::class.java).toList()
-        searchHistoryList.addAll(historyList.reversed())
+        searchHistoryList.addAll(historyList)
 
-        for (track in historyList) {
+        for (track in searchHistoryList) {
             historyMap[track.trackId] = Gson().toJson(track)
         }
 
@@ -402,14 +392,28 @@ class SearchActivity : AppCompatActivity(), TracksAdapter.TrackListener {
     }
 
     private fun clearSearchHistory(
-        sharedPrefs: SharedPreferences,
         historyRecycler: RecyclerView,
         searchHistory: RelativeLayout
     ) {
-        sharedPrefs.edit().clear().apply()
+        val searchHistoryInteractor = Creator.provideSearchHistoryInteractor(this)
+
         searchHistoryList.clear()
-        historyMap.clear()
+        searchHistoryInteractor.clearHistory()
+
         historyRecycler.adapter = adapter
         searchHistory.visibility = View.GONE
+    }
+
+    private fun putExtras(intent: Intent, track: TrackDto) {
+        intent.putExtra("trackId", track.trackId)
+        intent.putExtra("trackName", track.trackName)
+        intent.putExtra("artistName", track.artistName)
+        intent.putExtra("trackTimeMillis", track.trackTimeMillis)
+        intent.putExtra("artworkUrl100", track.artworkUrl100)
+        intent.putExtra("collectionName", track.collectionName)
+        intent.putExtra("releaseDate", track.releaseDate)
+        intent.putExtra("primaryGenreName", track.primaryGenreName)
+        intent.putExtra("country", track.country)
+        intent.putExtra("previewUrl", track.previewUrl)
     }
 }

@@ -1,4 +1,4 @@
-package com.practicum.playlistmaker
+package com.practicum.playlistmaker.settings.ui
 
 import android.annotation.SuppressLint
 import android.content.Intent
@@ -8,7 +8,8 @@ import android.widget.Switch
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.button.MaterialButton
-
+import com.practicum.playlistmaker.application.App
+import com.practicum.playlistmaker.R
 
 class SettingsActivity : AppCompatActivity() {
     @SuppressLint("MissingInflatedId", "UseSwitchCompatOrMaterialCode", "CommitPrefEdits")
@@ -16,8 +17,10 @@ class SettingsActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_settings)
 
-        val settingsPrefs = getSharedPreferences("settings", MODE_PRIVATE)
-        val switchState = settingsPrefs.getBoolean("switchState", true)
+        val settingsInteractor = Creator.provideSettingsInteractor(this)
+
+        val switchState = settingsInteractor.isThemeSwitcherDarkMode()
+
         val themeSwitcher = findViewById<Switch>(R.id.themeSwitcher)
 
         themeSwitcher.setChecked(switchState)
@@ -30,7 +33,7 @@ class SettingsActivity : AppCompatActivity() {
         themeSwitcher.setOnCheckedChangeListener { switcher, checked ->
             (applicationContext as App).switchTheme(checked)
             (applicationContext as App).putInSharedPreferences()
-            settingsPrefs.edit().putBoolean("switchState", themeSwitcher.isChecked).apply()
+            settingsInteractor.checkThemeSwitcher(themeSwitcher)
         }
 
         val sharingButton = findViewById<TextView>(R.id.sharing_button)
