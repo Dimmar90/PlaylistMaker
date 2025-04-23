@@ -1,39 +1,56 @@
 package com.practicum.playlistmaker.search.domain.impl
 
 import android.content.SharedPreferences
-import androidx.recyclerview.widget.RecyclerView
 import com.google.gson.GsonBuilder
 import com.practicum.playlistmaker.search.data.dto.TrackDto
 import com.practicum.playlistmaker.search.domain.api.SearchHistoryRepository
+import com.practicum.playlistmaker.search.domain.models.Track
 
-const val SEARCH_KEY = "key_for_search"
-
-class SearchHistoryRepositoryImpl(private val sharedPrefs: SharedPreferences) :
-    SearchHistoryRepository {
+class SearchHistoryRepositoryImpl(
+    private val sharedPrefs: SharedPreferences
+) : SearchHistoryRepository {
 
     private val builder = GsonBuilder()
     private val gson = builder.create()
-    private val searchHistoryList = mutableListOf<TrackDto>()
+    private val searchHistoryList = getHistory().toMutableList()
 
-    override fun getHistory(searchHistoryListRecycler: RecyclerView): MutableList<TrackDto> {
-
-        if (sharedPrefs.getString(SEARCH_KEY, "").toString().isNotEmpty()) {
-            val json = sharedPrefs.getString(SEARCH_KEY, "")
-            val historyList: List<TrackDto> = gson.fromJson(json, Array<TrackDto>::class.java).toList()
-            searchHistoryList.addAll(historyList.reversed())
+    override fun getHistory(): List<Track> {
+        var historyList = listOf<Track>()
+        val json = sharedPrefs.getString(SEARCH_KEY, "")
+        if (json?.isNotEmpty()!!) {
+            historyList =
+                gson.fromJson(json, Array<Track>::class.java).toList()
         }
-        return searchHistoryList
+        return historyList
     }
 
-    override fun saveHistory(historyMap: MutableMap<String, String>) {
+    override fun addTrackToHistory(track: TrackDto) {
+        val trackId = searchHistoryList.indexOfFirst { it.trackId == track.trackId }
+        if (trackId != -1) {
+            searchHistoryList.removeAt(trackId)
+            searchHistoryList.add(0, track.toTrack())
+        } else {
+            searchHistoryList.add(0, track.toTrack())
+        }
+        if (searchHistoryList.size > SEARCH_HISTORY_LIST_SIZE) {
+            searchHistoryList.removeLast()
+        }
+        saveHistory(searchHistoryList)
+    }
 
+    private fun saveHistory(historyList: List<Track>) {
         sharedPrefs.edit()
-            .putString(SEARCH_KEY, historyMap.values.toString())
+            .putString(SEARCH_KEY, gson.toJson(historyList))
             .apply()
     }
 
     override fun clearHistory() {
-
+        searchHistoryList.clear()
         sharedPrefs.edit().clear().apply()
+    }
+
+    companion object {
+        private const val SEARCH_KEY = "key_for_search"
+        private const val SEARCH_HISTORY_LIST_SIZE = 10
     }
 }

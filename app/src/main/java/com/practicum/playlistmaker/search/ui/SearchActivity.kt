@@ -1,15 +1,9 @@
 package com.practicum.playlistmaker.search.ui
 
-import Creator
 import android.annotation.SuppressLint
 import android.content.Intent
-import android.content.res.Configuration
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
-import android.text.Editable
 import android.view.View
-import android.view.inputmethod.InputMethodManager
 import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageView
@@ -17,230 +11,156 @@ import android.widget.ProgressBar
 import android.widget.RelativeLayout
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.widget.SearchView
+import androidx.core.view.isVisible
 import androidx.core.widget.addTextChangedListener
+import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.button.MaterialButton
-import com.google.gson.Gson
 import com.practicum.playlistmaker.R
+import com.practicum.playlistmaker.databinding.ActivitySearchBinding
 import com.practicum.playlistmaker.player.ui.PlayerActivity
-import com.practicum.playlistmaker.search.data.dto.TrackDto
-import com.practicum.playlistmaker.search.data.dto.TracksSearchResponse
-import com.practicum.playlistmaker.search.data.network.RetrofitNetworkClient
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
-
-private const val SEARCH_REFERENCES = "search_activity_preferences"
-const val SEARCH_KEY = "key_for_search"
+import com.practicum.playlistmaker.search.domain.models.Track
+import com.practicum.playlistmaker.search.domain.models.TracksState
 
 class SearchActivity : AppCompatActivity(), TracksAdapter.TrackListener {
-
     @SuppressLint("MissingInflatedId", "ResourceAsColor", "WrongViewCast")
 
+    private lateinit var viewModel: SearchViewModel
+    private lateinit var binding: ActivitySearchBinding
+
+    private val tracks = ArrayList<Track>()
+    private lateinit var tracksRecycler: RecyclerView
+    private val tracksAdapter = TracksAdapter(tracks, this)
     private lateinit var editText: EditText
 
-    private var tracks: ArrayList<TrackDto> = ArrayList()
+    private lateinit var connectionImage: ImageView
+    private lateinit var connectionMessage: TextView
+    private lateinit var connectionExtraMessage: TextView
+    private lateinit var returnButton: MaterialButton
+    private lateinit var updateButton: Button
+    private lateinit var progressBar: ProgressBar
 
-    private val retrofit = RetrofitNetworkClient()
-    private val itunesService = retrofit.getService()
-
-    private val adapter = TracksAdapter(tracks, this)
-
-    private val searchHistoryList = mutableListOf<TrackDto>()
-
-    private var historyMap = mutableMapOf<String, String>()
+    private val searchHistoryList = ArrayList<Track>()
+    private lateinit var historyRecycler: RecyclerView
     private val historyAdapter = TracksAdapter(searchHistoryList, this)
+    private lateinit var searchHistoryLayout: RelativeLayout
+    private lateinit var clearHistoryButton: Button
 
-    companion object {
-        private const val SEARCH_DEBOUNCE_DELAY = 2000L
-    }
-
-    private val handler = Handler(Looper.getMainLooper())
-
-    @SuppressLint("MissingInflatedId", "CutPasteId")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_search)
 
-        val sharedPrefs = getSharedPreferences(SEARCH_REFERENCES, MODE_PRIVATE)
-        val searchHistoryLayout = findViewById<RelativeLayout>(R.id.search_history)
+        viewModel = ViewModelProvider(
+            this,
+            SearchViewModel.getViewModelFactory(this)
+        )[SearchViewModel::class.java]
 
-        val recycler = findViewById<RecyclerView>(R.id.tracksList)
-        recycler.layoutManager = LinearLayoutManager(this)
+        binding = ActivitySearchBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
-        val historyRecycler = findViewById<RecyclerView>(R.id.search_history_list)
-        historyRecycler.layoutManager = LinearLayoutManager(this)
-
-        val connectionImage = findViewById<ImageView>(R.id.connection_image)
-        val connectionMessage = findViewById<TextView>(R.id.connection_text)
-        val connectionExtraMessage = findViewById<TextView>(R.id.extra_connection_text)
-        val updateButton = findViewById<Button>(R.id.update_search_button)
-        val progressBar = findViewById<ProgressBar>(R.id.progressBar)
-
-        val clearHistoryButton = findViewById<Button>(R.id.clear_history_button)
-
-        val searchHistoryInteractor = Creator.provideSearchHistoryInteractor(this)
-        val searchHistoryListRecycler = RecyclerView(this)
-
-        val returnButton = findViewById<MaterialButton>(R.id.search_return_button)
-        returnButton.setOnClickListener {
-            finish()
-        }
-
-        val searchView = findViewById<SearchView>(R.id.search_bar)
+        val searchView = binding.searchBar
         editText =
             (searchView.findViewById(androidx.appcompat.R.id.search_src_text))
 
-        if (sharedPrefs.getString(SEARCH_KEY, "").toString().isNotEmpty()) {
-            val historyListOfTracks = searchHistoryInteractor.getHistory(searchHistoryListRecycler)
-            addSearchHistory(historyListOfTracks, historyRecycler)
-            (editText).setOnFocusChangeListener { _, hasFocus ->
-                searchHistoryLayout.visibility =
-                    if (editText.text.isEmpty() && searchHistoryList.isNotEmpty()) View.VISIBLE else View.GONE
-            }
+        tracksRecycler = binding.tracksList
+        tracksRecycler.layoutManager = LinearLayoutManager(this)
+        tracksRecycler.adapter = tracksAdapter
+
+        connectionImage = binding.connectionImage
+        connectionMessage = binding.connectionText
+        connectionExtraMessage = binding.extraConnectionText
+        returnButton = binding.searchReturnButton
+        updateButton = binding.updateSearchButton
+        progressBar = binding.progressBar
+
+        searchHistoryLayout = binding.searchHistory
+        historyRecycler = binding.searchHistoryList
+        historyRecycler.layoutManager = LinearLayoutManager(this)
+        historyRecycler.adapter = historyAdapter
+        clearHistoryButton = binding.clearHistoryButton
+
+        viewModel.observeSearchHistory().observe(this) { history ->
+            searchHistoryList.clear()
+            searchHistoryList.addAll(history)
+            historyAdapter.notifyDataSetChanged()
         }
 
-        val searchRunnable = Runnable {
-            itunesServiceSearch(
-                connectionImage,
-                connectionMessage,
-                connectionExtraMessage,
-                updateButton,
-                recycler,
-                editText,
-                progressBar
-            )
+        viewModel.observeState().observe(this) { state ->
+            render(state)
         }
 
         editText.addTextChangedListener(
-            beforeTextChanged = { _: CharSequence?, _, _, _ -> },
+            beforeTextChanged = { _: CharSequence?, _, _, _ ->
+            },
             onTextChanged = { s: CharSequence?, _, _, _ ->
-                connectionImage.visibility = View.GONE
-                connectionMessage.visibility = View.GONE
-                connectionExtraMessage.visibility = View.GONE
-                updateButton.visibility = View.GONE
-                tracks.clear()
-                recycler.adapter = adapter
+                searchHistoryLayout.visibility = View.GONE
+                viewModel.searchDebounce(editText.text.toString())
 
-                searchDebounce(searchRunnable)
-
-                searchHistoryLayout.visibility =
-                    if (editText.hasFocus() && s?.isEmpty() == true && sharedPrefs.getString(
-                            SEARCH_KEY,
-                            ""
-                        ).toString().isNotEmpty()
-                    ) View.VISIBLE else View.GONE
+                if (editText.hasFocus() && s?.isEmpty() == true) {
+                    viewModel.visibilityOfHistory()
+                }
             },
             afterTextChanged = { _ -> }
         )
 
-        val searchCloseButtonId =
-            searchView.findViewById<View>(androidx.appcompat.R.id.search_close_btn).id
-        val closeButton = searchView.findViewById<ImageView>(searchCloseButtonId)
-        closeButton.setOnClickListener {
-            editText.text.clear()
-
-            connectionImage.visibility = View.GONE
-            connectionMessage.visibility = View.GONE
-            connectionExtraMessage.visibility = View.GONE
-            updateButton.visibility = View.GONE
-            tracks.clear()
-            recycler.adapter = adapter
-
-            val view: View? = this.currentFocus
-            if (view != null) {
-                val inputMethodManager =
-                    getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
-                inputMethodManager.hideSoftInputFromWindow(view.windowToken, 0)
-            }
+        clearHistoryButton.setOnClickListener {
+            viewModel.clearSearchHistory()
+            viewModel.visibilityOfHistory()
         }
 
-        searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
-            override fun onQueryTextSubmit(query: String?): Boolean {
-                itunesServiceSearch(
-                    connectionImage,
-                    connectionMessage,
-                    connectionExtraMessage,
-                    updateButton,
-                    recycler,
-                    editText,
-                    progressBar
-                )
-                return true
-            }
+        returnButton.setOnClickListener {
+            finish()
+        }
+    }
 
-            override fun onQueryTextChange(newText: String?): Boolean {
-                return true
-            }
-        })
+    private fun render(state: TracksState) {
+        when (state) {
+            is TracksState.ShowLoading -> showLoading()
+            is TracksState.ShowEmptyScreen -> showEmptyScreen()
+            is TracksState.ShowHistory -> showSearchHistory()
 
-        updateButton.setOnClickListener {
-            itunesServiceSearch(
-                connectionImage,
-                connectionMessage,
-                connectionExtraMessage,
-                updateButton,
-                recycler,
-                editText,
-                progressBar
+            is TracksState.ShowTracksList -> getSearchingTracks(state.tracksList)
+            is TracksState.ShowEmptySearch -> setEmptySearchParameters(state.image, state.message)
+            is TracksState.ShowConnectionError -> setFailureConnectionParameters(
+                state.image,
+                state.message,
+                state.extraMessage
             )
         }
-
-        clearHistoryButton.setOnClickListener {
-            clearSearchHistory(historyRecycler, searchHistoryLayout)
-        }
     }
 
-    override fun onSaveInstanceState(outState: Bundle) {
-        outState.run { putString("KEY", editText.text.toString()) }
-        super.onSaveInstanceState(outState)
-    }
+    private fun getSearchingTracks(tracksList: List<Track>) {
+        tracksRecycler.isVisible = true
+        connectionImage.isVisible = false
+        connectionMessage.isVisible = false
+        connectionExtraMessage.isVisible = false
+        updateButton.isVisible = false
+        progressBar.isVisible = false
+        searchHistoryLayout.isVisible = false
 
-    fun getSearchingTracks(
-        connectionImage: ImageView,
-        connectionMessage: TextView,
-        connectionExtraMessage: TextView,
-        updateButton: Button,
-        response: Response<TracksSearchResponse>,
-        recycler: RecyclerView
-    ) {
         tracks.clear()
-
-        connectionImage.visibility = View.GONE
-        connectionMessage.visibility = View.GONE
-        connectionExtraMessage.visibility = View.GONE
-        updateButton.visibility = View.GONE
-        tracks.addAll(response.body()?.results!!)
-        recycler.adapter = adapter
+        tracks.addAll(tracksList)
+        tracksAdapter.notifyDataSetChanged()
     }
 
-    fun setEmptySearchParameters(
-        connectionImage: ImageView,
-        connectionMessage: TextView,
-        connectionExtraMessage: TextView,
-        updateButton: Button,
-        image: Int,
-        message: Int
-    ) {
+    private fun setEmptySearchParameters(image: Int, message: Int) {
+        tracksRecycler.isVisible = false
         connectionImage.visibility = View.VISIBLE
         connectionMessage.visibility = View.VISIBLE
         connectionExtraMessage.visibility = View.GONE
         updateButton.visibility = View.GONE
+        progressBar.isVisible = false
+        searchHistoryLayout.isVisible = false
         connectionImage.setImageResource(image)
         connectionMessage.setText(message)
+
+        tracks.clear()
+        tracksAdapter.notifyDataSetChanged()
     }
 
-    fun setFailureConnectionParameters(
-        connectionImage: ImageView,
-        connectionMessage: TextView,
-        connectionExtraMessage: TextView,
-        updateButton: Button,
-        image: Int,
-        message: Int,
-        extraMessage: Int
-    ) {
+    private fun setFailureConnectionParameters(image: Int, message: Int, extraMessage: Int) {
+        tracksRecycler.isVisible = false
         connectionImage.visibility = View.VISIBLE
         connectionMessage.visibility = View.VISIBLE
         connectionExtraMessage.visibility = View.VISIBLE
@@ -248,163 +168,51 @@ class SearchActivity : AppCompatActivity(), TracksAdapter.TrackListener {
         connectionImage.setImageResource(image)
         connectionMessage.setText(message)
         connectionExtraMessage.setText(extraMessage)
+        progressBar.isVisible = false
+        searchHistoryLayout.isVisible = false
+
+        tracks.clear()
+        tracksAdapter.notifyDataSetChanged()
     }
 
-    fun isDarkModeOn(): Boolean {
-        val nightModeFlags = resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
-        val isDarkModeOn = nightModeFlags == Configuration.UI_MODE_NIGHT_YES
-        return isDarkModeOn
+    private fun showLoading() {
+        tracksRecycler.isVisible = false
+        progressBar.isVisible = true
+        searchHistoryLayout.isVisible = false
     }
 
-    fun itunesServiceSearch(
-        connectionImage: ImageView,
-        connectionMessage: TextView,
-        connectionExtraMessage: TextView,
-        updateButton: Button,
-        recycler: RecyclerView,
-        text: EditText,
-        progressBar: ProgressBar
-    ) {
-        val nameOfSearchingTrack: Editable? = editText.text
-        progressBar.visibility = View.VISIBLE
-
-        itunesService
-            .search(nameOfSearchingTrack.toString())
-            .enqueue(object : Callback<TracksSearchResponse> {
-                @SuppressLint("NotifyDataSetChanged")
-                override fun onResponse(
-                    call: Call<TracksSearchResponse>,
-                    response: Response<TracksSearchResponse>
-                ) {
-                    progressBar.visibility = View.GONE
-                    if (response.code() == 200) {
-                        if (response.body()?.results?.isNotEmpty() == true) {
-                            getSearchingTracks(
-                                connectionImage,
-                                connectionMessage,
-                                connectionExtraMessage,
-                                updateButton,
-                                response,
-                                recycler
-                            )
-                        } else if (text.text.isNotEmpty()) {
-                            tracks.clear()
-                            recycler.adapter = adapter
-                            if (!isDarkModeOn()) {
-                                setEmptySearchParameters(
-                                    connectionImage,
-                                    connectionMessage,
-                                    connectionExtraMessage,
-                                    updateButton,
-                                    R.drawable.empty_search_image,
-                                    R.string.empty_search
-                                )
-                            } else {
-                                setEmptySearchParameters(
-                                    connectionImage,
-                                    connectionMessage,
-                                    connectionExtraMessage,
-                                    updateButton,
-                                    R.drawable.empty_search_image_dark_mode,
-                                    R.string.empty_search
-                                )
-                            }
-                        }
-                    }
-                }
-
-                override fun onFailure(call: Call<TracksSearchResponse>, t: Throwable) {
-                    tracks.clear()
-                    progressBar.visibility = View.GONE
-                    recycler.adapter = adapter
-                    if (!isDarkModeOn()) {
-                        setFailureConnectionParameters(
-                            connectionImage,
-                            connectionMessage,
-                            connectionExtraMessage,
-                            updateButton,
-                            R.drawable.connection_error_image,
-                            R.string.connection_error_message,
-                            R.string.extra_connection_error_message
-                        )
-                    } else {
-                        setFailureConnectionParameters(
-                            connectionImage,
-                            connectionMessage,
-                            connectionExtraMessage,
-                            updateButton,
-                            R.drawable.connection_error_image_dark_mode,
-                            R.string.connection_error_message,
-                            R.string.extra_connection_error_message
-                        )
-                    }
-                }
-            })
+    private fun showEmptyScreen() {
+        connectionImage.isVisible = false
+        connectionMessage.isVisible = false
+        connectionExtraMessage.isVisible = false
+        updateButton.isVisible = false
+        progressBar.isVisible = false
+        tracksRecycler.isVisible = false
+        progressBar.isVisible = false
+        searchHistoryLayout.isVisible = false
     }
 
-    private fun searchDebounce(searchRunnable: Runnable) {
-        handler.removeCallbacks(searchRunnable)
-        handler.postDelayed(searchRunnable, SEARCH_DEBOUNCE_DELAY)
+    private fun showSearchHistory() {
+        connectionImage.isVisible = false
+        connectionMessage.isVisible = false
+        connectionExtraMessage.isVisible = false
+        updateButton.isVisible = false
+        progressBar.isVisible = false
+        historyAdapter.notifyDataSetChanged()
+        tracksRecycler.isVisible = false
+        progressBar.isVisible = false
+        searchHistoryLayout.isVisible = true
     }
 
-    override fun onTrackClick(track: TrackDto) {
+    override fun onTrackClick(track: Track) {
         val intent = Intent(this, PlayerActivity::class.java)
-
         putExtras(intent, track)
-
+        viewModel.addTrackToHistory(track)
+        historyAdapter.notifyDataSetChanged()
         startActivity(intent)
-
-        val trackGson = Gson().toJson(track)
-        val searchHistoryListRecycler = findViewById<RecyclerView>(R.id.search_history_list)
-        val searchHistoryInteractor = Creator.provideSearchHistoryInteractor(this)
-
-        if (historyMap.keys.contains(track.trackId)) {
-            historyMap.remove(track.trackId)
-            searchHistoryList.remove(track)
-        }
-
-        if (historyMap.keys.size == 10) {
-            historyMap.remove(historyMap.keys.first())
-            searchHistoryList.removeAt(9)
-        }
-
-        historyMap[track.trackId] = trackGson
-        searchHistoryList.add(0, track)
-
-        searchHistoryInteractor.saveHistory(historyMap)
-
-        searchHistoryListRecycler.layoutManager = LinearLayoutManager(this)
-        searchHistoryListRecycler.adapter = historyAdapter
     }
 
-    private fun addSearchHistory(
-        historyList: MutableList<TrackDto>,
-        searchHistoryListRecycler: RecyclerView
-    ) {
-        searchHistoryList.addAll(historyList)
-
-        for (track in searchHistoryList) {
-            historyMap[track.trackId] = Gson().toJson(track)
-        }
-
-        searchHistoryListRecycler.layoutManager = LinearLayoutManager(this)
-        searchHistoryListRecycler.adapter = historyAdapter
-    }
-
-    private fun clearSearchHistory(
-        historyRecycler: RecyclerView,
-        searchHistory: RelativeLayout
-    ) {
-        val searchHistoryInteractor = Creator.provideSearchHistoryInteractor(this)
-
-        searchHistoryList.clear()
-        searchHistoryInteractor.clearHistory()
-
-        historyRecycler.adapter = adapter
-        searchHistory.visibility = View.GONE
-    }
-
-    private fun putExtras(intent: Intent, track: TrackDto) {
+    private fun putExtras(intent: Intent, track: Track) {
         intent.putExtra("trackId", track.trackId)
         intent.putExtra("trackName", track.trackName)
         intent.putExtra("artistName", track.artistName)

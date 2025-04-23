@@ -1,143 +1,107 @@
 package com.practicum.playlistmaker.player.ui
 
-import Creator
 import android.annotation.SuppressLint
-import android.icu.text.SimpleDateFormat
 import android.os.Bundle
 import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.TextView
-import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
-import com.bumptech.glide.Glide
-import com.bumptech.glide.load.resource.bitmap.RoundedCorners
+import androidx.lifecycle.ViewModelProvider
 import com.google.android.material.button.MaterialButton
 import com.practicum.playlistmaker.R
-import java.util.Locale
+import com.practicum.playlistmaker.databinding.ActivityAudioPlayerBinding
 
 class PlayerActivity : AppCompatActivity() {
 
-    private var playerInteractor = Creator.providePlayerInteractor()
+    private lateinit var viewModel: PlayerViewModel
+    private lateinit var binding: ActivityAudioPlayerBinding
+
+    private lateinit var playButton: MaterialButton
+    private lateinit var playerTime: TextView
+    private lateinit var returnButton: ImageButton
+
+    private lateinit var trackCover: ImageView
+    private lateinit var trackName: TextView
+    private lateinit var artistName: TextView
+    private lateinit var trackDuration: TextView
+    private lateinit var collectionName: TextView
+    private lateinit var trackReleaseDate: TextView
+    private lateinit var trackGenre: TextView
+    private lateinit var trackCountry: TextView
 
     @SuppressLint("MissingInflatedId")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_audio_player)
 
-        val trackName = intent.getStringExtra("trackName").toString()
-        val trackPreviewUrl = intent.getStringExtra("previewUrl").toString()
-        val trackArtworkUrl = intent.getStringExtra("artworkUrl100")
-        val artistName = intent.getStringExtra("artistName").toString()
-        val trackDuration = intent.getIntExtra("trackTimeMillis", 0)
-        val collectionName = intent.getStringExtra("collectionName").toString()
-        val releaseDate = intent.getStringExtra("releaseDate").toString()
-        val primaryGenreName = intent.getStringExtra("primaryGenreName").toString()
-        val country = intent.getStringExtra("country").toString()
-        val playerTime = findViewById<TextView>(R.id.player_time)
+        viewModel = ViewModelProvider(
+            this,
+            PlayerViewModel.getViewModelFactory(this)
+        )[PlayerViewModel::class.java]
 
-        val runnable: Runnable = object : Runnable {
-            override fun run() {
-                playerInteractor.refreshPlayerTime(this, playerTime)
-            }
-        }
+        binding = ActivityAudioPlayerBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
-        playerInteractor.preparePlayer(trackPreviewUrl)
-        returnToMedia(runnable)
-        getTrackCover(trackArtworkUrl!!.replaceAfterLast('/', "512x512bb.jpg"))
-        addTrackTitles(
+        playButton = binding.playTrackButton
+        playerTime = binding.playerTime
+        returnButton = binding.playerReturnButton
+
+        trackCover = binding.trackArtwork
+        trackName = binding.songTitle
+        artistName = binding.artistName
+        trackDuration = binding.trackDuration
+        collectionName = binding.trackCollectionName
+        trackReleaseDate = binding.trackReleaseDate
+        trackGenre = binding.trackPrimaryGenreName
+        trackCountry = binding.trackCountry
+
+        viewModel.addTrackCover(this, trackCover)
+
+        viewModel.addTrackTitles(
             trackName,
             artistName,
             trackDuration,
             collectionName,
-            releaseDate,
-            primaryGenreName,
-            country
+            trackReleaseDate,
+            trackGenre,
+            trackCountry
         )
-        playTrack(runnable, playerTime)
-        addToMedia()
+
+        viewModel.preparePlayer()
+
+        playButton.setOnClickListener {
+            viewModel.playbackControl()
+        }
+
+        viewModel.observeIsPlaying.observe(this) { isPlaying ->
+            if (isPlaying) {
+                playButton.setIconResource(R.drawable.pause_button)
+            } else {
+                playButton.setIconResource(R.drawable.play_track_button_icon)
+            }
+        }
+
+        viewModel.observeCurrentTime.observe(this) { time ->
+            playerTime.text = time
+        }
+
+        viewModel.observeIsEnded.observe(this) { isTrackEnded ->
+            if (isTrackEnded) {
+                playButton.setIconResource(R.drawable.play_track_button_icon)
+            }
+        }
 
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
-                playerInteractor.pausePlayer(runnable)
+                viewModel.pausePlayer()
                 finish()
             }
         })
-    }
 
-    private fun returnToMedia(runnable: Runnable) {
-        val returnButton = findViewById<ImageButton>(R.id.player_return_button)
         returnButton.setOnClickListener {
-            playerInteractor.pausePlayer(runnable)
+            viewModel.pausePlayer()
             finish()
-        }
-    }
-
-    private fun getTrackCover(url: String) {
-        val trackCover = findViewById<ImageView>(R.id.track_artwork)
-        Glide.with(this)
-            .load(url)
-            .placeholder(R.drawable.placeholder_icon)
-            .centerInside()
-            .transform(RoundedCorners(8))
-            .into(trackCover)
-    }
-
-    private fun addTrackTitles(
-        trackName: String, artistName: String, trackDuration: Int,
-        collectionName: String, releaseDate: String, primaryGenreName: String, country: String
-    ) {
-        val songTitleView = findViewById<TextView>(R.id.song_title)
-        songTitleView.text = trackName
-
-        val artistNameView = findViewById<TextView>(R.id.artist_name)
-        artistNameView.text = artistName
-
-        val trackDurationView = findViewById<TextView>(R.id.track_duration)
-        trackDurationView.text =
-            SimpleDateFormat("mm:ss", Locale.getDefault()).format(trackDuration)
-
-        val collectionNameView = findViewById<TextView>(R.id.track_collectionName)
-        collectionNameView.text = collectionName
-
-        val releaseDateView = findViewById<TextView>(R.id.track_releaseDate)
-        releaseDateView.text = releaseDate.take(4)
-
-        val primaryGenreNameView = findViewById<TextView>(R.id.track_primaryGenreName)
-        primaryGenreNameView.text = primaryGenreName
-
-        val countryView = findViewById<TextView>(R.id.track_country)
-        countryView.text = country
-    }
-
-    private fun playTrack(runnable: Runnable, playerTime: TextView) {
-        val playTrackButton = findViewById<MaterialButton>(R.id.play_track_button)
-
-        playTrackButton.setOnClickListener {
-            playbackControl(runnable, playerTime)
-        }
-    }
-
-    private fun playbackControl(runnable: Runnable, playerTime: TextView) {
-        val playTrackButton = findViewById<MaterialButton>(R.id.play_track_button)
-        playerInteractor.setOnCompletionListener(runnable, playerTime, playTrackButton)
-        val state = playerInteractor.playbackControl(runnable)
-
-        when (state) {
-            2 -> {
-                playTrackButton.setIconResource(R.drawable.play_track_button_icon)
-            }
-
-            3 -> {
-                playTrackButton.setIconResource(R.drawable.pause_button)
-            }
-        }
-    }
-
-    private fun addToMedia() {
-        val addToMediaButton = findViewById<MaterialButton>(R.id.add_to_media_button)
-        addToMediaButton.setOnClickListener {
-            Toast.makeText(this, "Add Track To Media", Toast.LENGTH_SHORT).show()
         }
     }
 }
