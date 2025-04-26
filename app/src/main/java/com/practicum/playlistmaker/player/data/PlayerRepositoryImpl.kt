@@ -1,11 +1,13 @@
-package com.practicum.playlistmaker.player.domain.impl
+package com.practicum.playlistmaker.player.data
 
 import android.icu.text.SimpleDateFormat
 import android.media.MediaPlayer
 import android.os.Handler
 import android.os.Looper
+import android.widget.TextView
 import androidx.lifecycle.MutableLiveData
 import com.practicum.playlistmaker.player.domain.api.PlayerRepository
+import com.practicum.playlistmaker.player.ui.PlayerState
 import java.util.Locale
 
 class PlayerRepositoryImpl : PlayerRepository {
@@ -55,21 +57,19 @@ class PlayerRepositoryImpl : PlayerRepository {
         return STATE_PREPARED
     }
 
-    override fun refreshPlayerTime(runnable: Runnable, playerTime: MutableLiveData<String>) {
-        playerTime.value =
-            SimpleDateFormat("mm:ss", Locale.getDefault()).format(mediaPlayer.currentPosition)
+    override fun refreshPlayerTime(runnable: Runnable, playerTime: TextView) {
+        playerTime.text = SimpleDateFormat("mm:ss", Locale.getDefault()).format(mediaPlayer.currentPosition).toString()
         handler.postDelayed(runnable, REFRESH_PLAYER_TIME_DELAY_MILLIS)
     }
 
     override fun setOnCompletionListener(
         runnable: Runnable,
-        playerTime: MutableLiveData<String>,
-        isTrackEnded: MutableLiveData<Boolean>
+        playerTime: TextView,
+        playerStateLiveData: MutableLiveData<PlayerState>
     ) {
         mediaPlayer.setOnCompletionListener {
             pausePlayer(runnable)
-            playerTime.value = "00:00"
-            isTrackEnded.value = true
+            playerStateLiveData.value = PlayerState.StateTrackEnded
         }
     }
 

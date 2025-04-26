@@ -10,6 +10,7 @@ import android.widget.ImageView
 import android.widget.ProgressBar
 import android.widget.RelativeLayout
 import android.widget.TextView
+import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
 import androidx.core.widget.addTextChangedListener
@@ -18,8 +19,11 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.button.MaterialButton
 import com.practicum.playlistmaker.R
+import com.practicum.playlistmaker.creator.Creator
 import com.practicum.playlistmaker.databinding.ActivitySearchBinding
+import com.practicum.playlistmaker.main.ui.MainActivity
 import com.practicum.playlistmaker.player.ui.PlayerActivity
+import com.practicum.playlistmaker.search.data.network.RetrofitNetworkClient
 import com.practicum.playlistmaker.search.domain.models.Track
 import com.practicum.playlistmaker.search.domain.models.TracksState
 
@@ -47,13 +51,20 @@ class SearchActivity : AppCompatActivity(), TracksAdapter.TrackListener {
     private lateinit var searchHistoryLayout: RelativeLayout
     private lateinit var clearHistoryButton: Button
 
+    @SuppressLint("NotifyDataSetChanged")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_search)
 
         viewModel = ViewModelProvider(
             this,
-            SearchViewModel.getViewModelFactory(this)
+            SearchViewModel.getViewModelFactory(
+                this,
+                Creator.provideSearchTracksInteractor(
+                    RetrofitNetworkClient(this)
+                ),
+                Creator.provideSearchHistoryInteractor(this)
+            )
         )[SearchViewModel::class.java]
 
         binding = ActivitySearchBinding.inflate(layoutInflater)
@@ -79,12 +90,7 @@ class SearchActivity : AppCompatActivity(), TracksAdapter.TrackListener {
         historyRecycler.layoutManager = LinearLayoutManager(this)
         historyRecycler.adapter = historyAdapter
         clearHistoryButton = binding.clearHistoryButton
-
-        viewModel.observeSearchHistory().observe(this) { history ->
-            searchHistoryList.clear()
-            searchHistoryList.addAll(history)
-            historyAdapter.notifyDataSetChanged()
-        }
+        val mainIntent = Intent(application.applicationContext, MainActivity::class.java)
 
         viewModel.observeState().observe(this) { state ->
             render(state)
@@ -109,7 +115,15 @@ class SearchActivity : AppCompatActivity(), TracksAdapter.TrackListener {
             viewModel.visibilityOfHistory()
         }
 
+        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                startActivity(mainIntent)
+                finish()
+            }
+        })
+
         returnButton.setOnClickListener {
+            startActivity(mainIntent)
             finish()
         }
     }
@@ -118,7 +132,7 @@ class SearchActivity : AppCompatActivity(), TracksAdapter.TrackListener {
         when (state) {
             is TracksState.ShowLoading -> showLoading()
             is TracksState.ShowEmptyScreen -> showEmptyScreen()
-            is TracksState.ShowHistory -> showSearchHistory()
+            is TracksState.ShowHistory -> showSearchHistory(state.historyList)
 
             is TracksState.ShowTracksList -> getSearchingTracks(state.tracksList)
             is TracksState.ShowEmptySearch -> setEmptySearchParameters(state.image, state.message)
@@ -130,6 +144,7 @@ class SearchActivity : AppCompatActivity(), TracksAdapter.TrackListener {
         }
     }
 
+    @SuppressLint("NotifyDataSetChanged")
     private fun getSearchingTracks(tracksList: List<Track>) {
         tracksRecycler.isVisible = true
         connectionImage.isVisible = false
@@ -144,6 +159,7 @@ class SearchActivity : AppCompatActivity(), TracksAdapter.TrackListener {
         tracksAdapter.notifyDataSetChanged()
     }
 
+    @SuppressLint("NotifyDataSetChanged")
     private fun setEmptySearchParameters(image: Int, message: Int) {
         tracksRecycler.isVisible = false
         connectionImage.visibility = View.VISIBLE
@@ -159,6 +175,7 @@ class SearchActivity : AppCompatActivity(), TracksAdapter.TrackListener {
         tracksAdapter.notifyDataSetChanged()
     }
 
+    @SuppressLint("NotifyDataSetChanged")
     private fun setFailureConnectionParameters(image: Int, message: Int, extraMessage: Int) {
         tracksRecycler.isVisible = false
         connectionImage.visibility = View.VISIBLE
@@ -192,7 +209,11 @@ class SearchActivity : AppCompatActivity(), TracksAdapter.TrackListener {
         searchHistoryLayout.isVisible = false
     }
 
-    private fun showSearchHistory() {
+    @SuppressLint("NotifyDataSetChanged")
+    private fun showSearchHistory(historyList: List<Track>) {
+        searchHistoryList.clear()
+        searchHistoryList.addAll(historyList)
+        historyAdapter.notifyDataSetChanged()
         connectionImage.isVisible = false
         connectionMessage.isVisible = false
         connectionExtraMessage.isVisible = false
@@ -204,6 +225,7 @@ class SearchActivity : AppCompatActivity(), TracksAdapter.TrackListener {
         searchHistoryLayout.isVisible = true
     }
 
+    @SuppressLint("NotifyDataSetChanged")
     override fun onTrackClick(track: Track) {
         val intent = Intent(this, PlayerActivity::class.java)
         putExtras(intent, track)

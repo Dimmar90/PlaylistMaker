@@ -1,67 +1,89 @@
 package com.practicum.playlistmaker.player.ui
 
-import android.content.Context
+import android.annotation.SuppressLint
+import android.app.Application
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.practicum.playlistmaker.R
-import com.practicum.playlistmaker.creator.Creator
+import com.practicum.playlistmaker.player.domain.api.PlayerInteractor
+import com.practicum.playlistmaker.search.domain.api.SearchHistoryInteractor
 import com.practicum.playlistmaker.search.domain.models.Track
 import java.text.SimpleDateFormat
 import java.util.Locale
 
-class PlayerViewModel(context: Context) : ViewModel() {
-
-    private var playerInteractor = Creator.providePlayerInteractor()
-    private var historyInteractor = Creator.provideSearchHistoryInteractor(context)
+class PlayerViewModel(
+    private var application: Application,
+    private var playerInteractor: PlayerInteractor,
+    historyInteractor: SearchHistoryInteractor,
+) : AndroidViewModel(application) {
 
     private val track: Track = historyInteractor.getHistory().first()
 
-    private val isPlaying = MutableLiveData<Boolean>()
-    val observeIsPlaying: LiveData<Boolean> = isPlaying
-    private val currentTime = MutableLiveData("00:00")
-    val observeCurrentTime: LiveData<String> = currentTime
-    private val isEnded = MutableLiveData<Boolean>()
-    val observeIsEnded: LiveData<Boolean> = isEnded
+    private val playerState = MutableLiveData<PlayerState>()
+    val observePlayerState: LiveData<PlayerState> = playerState
+
+    @SuppressLint("StaticFieldLeak")
+    private val currentTime = TextView(application)
 
     private val runnable: Runnable = object : Runnable {
         override fun run() {
             playerInteractor.refreshPlayerTime(this, currentTime)
+            playerState.postValue(PlayerState.StatePlaying(currentTime.text.toString()))
         }
     }
 
-    fun preparePlayer() {
+    init {
+        preparePlayer()
+    }
+
+    private fun preparePlayer() {
         playerInteractor.preparePlayer(track.previewUrl)
+        playerState.postValue(PlayerState.StateDefault)
     }
 
     private fun startPlayer() {
         playerInteractor.startPlayer(runnable)
-        isPlaying.value = true
+        playerState.postValue(PlayerState.StatePlaying(currentTime.text.toString()))
     }
 
     fun pausePlayer() {
         playerInteractor.pausePlayer(runnable)
-        isPlaying.value = false
+        playerState.postValue(PlayerState.StatePaused)
     }
 
     fun playbackControl() {
-        if (isPlaying.value == true) {
-            pausePlayer()
-        } else {
-            startPlayer()
+        when (playerState.value) {
+            is PlayerState.StateDefault -> {
+                startPlayer()
+            }
+
+            is PlayerState.StatePlaying -> {
+                pausePlayer()
+            }
+
+            is PlayerState.StatePaused -> {
+                startPlayer()
+            }
+
+            is PlayerState.StateTrackEnded -> {
+                startPlayer()
+            }
+
+            null -> {}
         }
-        playerInteractor.setOnCompletionListener(runnable, currentTime, isEnded)
+        playerInteractor.setOnCompletionListener(runnable, currentTime, playerState)
     }
 
-    fun addTrackCover(context: Context, trackCover: ImageView) {
-        Glide.with(context)
+    fun addTrackCover(trackCover: ImageView) {
+        Glide.with(application.applicationContext)
             .load(track.artworkUrl100.replaceAfterLast('/', "512x512bb.jpg"))
             .placeholder(R.drawable.placeholder_icon)
             .centerInside()
@@ -90,10 +112,12 @@ class PlayerViewModel(context: Context) : ViewModel() {
 
     companion object {
         fun getViewModelFactory(
-            context: Context
+            application: Application,
+            playerInteractor: PlayerInteractor,
+            historyInteractor: SearchHistoryInteractor,
         ): ViewModelProvider.Factory = viewModelFactory {
             initializer {
-                PlayerViewModel(context)
+                PlayerViewModel(application, playerInteractor, historyInteractor)
             }
         }
     }

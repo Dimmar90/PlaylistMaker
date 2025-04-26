@@ -6,7 +6,9 @@ sealed interface TracksState {
 
     data object ShowEmptyScreen : TracksState
 
-    data object ShowHistory : TracksState
+    data class ShowHistory(
+        val historyList: List<Track>
+    ) : TracksState
 
     data class ShowTracksList(
         val tracksList: List<Track>

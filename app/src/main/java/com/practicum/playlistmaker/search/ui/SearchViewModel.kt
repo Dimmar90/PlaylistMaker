@@ -11,30 +11,25 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.practicum.playlistmaker.R
-import com.practicum.playlistmaker.creator.Creator
-import com.practicum.playlistmaker.search.data.network.RetrofitNetworkClient
+import com.practicum.playlistmaker.search.domain.api.SearchHistoryInteractor
 import com.practicum.playlistmaker.search.domain.api.SearchTracksInteractor
 import com.practicum.playlistmaker.search.domain.models.Track
 import com.practicum.playlistmaker.search.domain.models.TracksState
 
 class SearchViewModel(
-    context: Context
+    context: Context,
+    private var searchTracksInteractor: SearchTracksInteractor,
+    private var historyInteractor: SearchHistoryInteractor
 ) : ViewModel() {
 
-    private val retrofit = RetrofitNetworkClient(context)
-
-    private val searchTracksInteractor = Creator.provideSearchTracksInteractor(retrofit)
-    private val historyInteractor = Creator.provideSearchHistoryInteractor(context)
-
-    val tracksList: MutableList<Track> = ArrayList()
+    private val tracksList: MutableList<Track> = ArrayList()
     private val handler = Handler(Looper.getMainLooper())
     private var searchText: String? = null
 
     private val renderState = MutableLiveData<TracksState>()
     fun observeState(): LiveData<TracksState> = renderState
 
-    private val searchHistory = MutableLiveData<List<Track>>()
-    fun observeSearchHistory(): LiveData<List<Track>> = searchHistory
+    private var searchHistory = listOf<Track>()
 
     private var isNightModeOn = false
 
@@ -44,7 +39,7 @@ class SearchViewModel(
     }
 
     private fun loadSearchHistory() {
-        searchHistory.value = historyInteractor.getHistory()
+        searchHistory = historyInteractor.getHistory()
         visibilityOfHistory()
     }
 
@@ -136,7 +131,7 @@ class SearchViewModel(
     fun visibilityOfHistory() {
         val historyList = historyInteractor.getHistory()
         if (historyList.isNotEmpty()) {
-            renderState(TracksState.ShowHistory)
+            renderState(TracksState.ShowHistory(historyList))
         } else {
             renderState(TracksState.ShowEmptyScreen)
         }
@@ -159,9 +154,13 @@ class SearchViewModel(
     companion object {
         private const val SEARCH_DEBOUNCE_DELAY = 2000L
 
-        fun getViewModelFactory(context: Context): ViewModelProvider.Factory = viewModelFactory {
+        fun getViewModelFactory(
+            context: Context,
+            searchTracksInteractor: SearchTracksInteractor,
+            historyInteractor: SearchHistoryInteractor
+        ): ViewModelProvider.Factory = viewModelFactory {
             initializer {
-                SearchViewModel(context)
+                SearchViewModel(context, searchTracksInteractor, historyInteractor)
             }
         }
     }

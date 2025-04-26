@@ -2,14 +2,13 @@ package com.practicum.playlistmaker.player.ui
 
 import android.annotation.SuppressLint
 import android.os.Bundle
-import android.widget.ImageButton
-import android.widget.ImageView
 import android.widget.TextView
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
 import com.google.android.material.button.MaterialButton
 import com.practicum.playlistmaker.R
+import com.practicum.playlistmaker.creator.Creator
 import com.practicum.playlistmaker.databinding.ActivityAudioPlayerBinding
 
 class PlayerActivity : AppCompatActivity() {
@@ -19,16 +18,6 @@ class PlayerActivity : AppCompatActivity() {
 
     private lateinit var playButton: MaterialButton
     private lateinit var playerTime: TextView
-    private lateinit var returnButton: ImageButton
-
-    private lateinit var trackCover: ImageView
-    private lateinit var trackName: TextView
-    private lateinit var artistName: TextView
-    private lateinit var trackDuration: TextView
-    private lateinit var collectionName: TextView
-    private lateinit var trackReleaseDate: TextView
-    private lateinit var trackGenre: TextView
-    private lateinit var trackCountry: TextView
 
     @SuppressLint("MissingInflatedId")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -37,7 +26,11 @@ class PlayerActivity : AppCompatActivity() {
 
         viewModel = ViewModelProvider(
             this,
-            PlayerViewModel.getViewModelFactory(this)
+            PlayerViewModel.getViewModelFactory(
+                application,
+                Creator.providePlayerInteractor(),
+                Creator.provideSearchHistoryInteractor(this)
+            ),
         )[PlayerViewModel::class.java]
 
         binding = ActivityAudioPlayerBinding.inflate(layoutInflater)
@@ -45,18 +38,18 @@ class PlayerActivity : AppCompatActivity() {
 
         playButton = binding.playTrackButton
         playerTime = binding.playerTime
-        returnButton = binding.playerReturnButton
+        val returnButton = binding.playerReturnButton
 
-        trackCover = binding.trackArtwork
-        trackName = binding.songTitle
-        artistName = binding.artistName
-        trackDuration = binding.trackDuration
-        collectionName = binding.trackCollectionName
-        trackReleaseDate = binding.trackReleaseDate
-        trackGenre = binding.trackPrimaryGenreName
-        trackCountry = binding.trackCountry
+        val trackCover = binding.trackArtwork
+        val trackName = binding.songTitle
+        val artistName = binding.artistName
+        val trackDuration = binding.trackDuration
+        val collectionName = binding.trackCollectionName
+        val trackReleaseDate = binding.trackReleaseDate
+        val trackGenre = binding.trackPrimaryGenreName
+        val trackCountry = binding.trackCountry
 
-        viewModel.addTrackCover(this, trackCover)
+        viewModel.addTrackCover(trackCover)
 
         viewModel.addTrackTitles(
             trackName,
@@ -68,28 +61,8 @@ class PlayerActivity : AppCompatActivity() {
             trackCountry
         )
 
-        viewModel.preparePlayer()
-
-        playButton.setOnClickListener {
-            viewModel.playbackControl()
-        }
-
-        viewModel.observeIsPlaying.observe(this) { isPlaying ->
-            if (isPlaying) {
-                playButton.setIconResource(R.drawable.pause_button)
-            } else {
-                playButton.setIconResource(R.drawable.play_track_button_icon)
-            }
-        }
-
-        viewModel.observeCurrentTime.observe(this) { time ->
-            playerTime.text = time
-        }
-
-        viewModel.observeIsEnded.observe(this) { isTrackEnded ->
-            if (isTrackEnded) {
-                playButton.setIconResource(R.drawable.play_track_button_icon)
-            }
+        viewModel.observePlayerState.observe(this) { playerState ->
+            putPlayerState(playerState)
         }
 
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
@@ -103,5 +76,39 @@ class PlayerActivity : AppCompatActivity() {
             viewModel.pausePlayer()
             finish()
         }
+    }
+
+    private fun putPlayerState(state: PlayerState) {
+        when (state) {
+            is PlayerState.StateDefault -> defaultState()
+            is PlayerState.StatePlaying -> playState(state.playbackTime)
+            is PlayerState.StatePaused -> pauseState()
+            is PlayerState.StateTrackEnded -> trackIsEndedState()
+        }
+    }
+
+    private fun defaultState() {
+        playButton.setOnClickListener {
+            playButton.setIconResource(R.drawable.pause_button)
+            viewModel.playbackControl()
+        }
+    }
+
+    private fun playState(playbackTime: String) {
+        playerTime.text = playbackTime
+        playButton.setOnClickListener {
+            playButton.setIconResource(R.drawable.pause_button)
+            viewModel.playbackControl()
+        }
+    }
+
+    private fun pauseState() {
+        playButton.setIconResource(R.drawable.play_track_button_icon)
+    }
+
+    @SuppressLint("SetTextI18n")
+    private fun trackIsEndedState() {
+        playerTime.text = "00:00"
+        playButton.setIconResource(R.drawable.play_track_button_icon)
     }
 }

@@ -1,8 +1,10 @@
 package com.practicum.playlistmaker.player.domain.impl
 
+import android.widget.TextView
 import androidx.lifecycle.MutableLiveData
 import com.practicum.playlistmaker.player.domain.api.PlayerInteractor
 import com.practicum.playlistmaker.player.domain.api.PlayerRepository
+import com.practicum.playlistmaker.player.ui.PlayerState
 
 class PlayerInteractorImpl(private val repository: PlayerRepository) : PlayerInteractor {
 
@@ -22,15 +24,15 @@ class PlayerInteractorImpl(private val repository: PlayerRepository) : PlayerInt
         return repository.playbackControl(runnable)
     }
 
-    override fun refreshPlayerTime(runnable: Runnable, playerTime: MutableLiveData<String>) {
+    override fun refreshPlayerTime(runnable: Runnable, playerTime: TextView) {
         repository.refreshPlayerTime(runnable, playerTime)
     }
 
     override fun setOnCompletionListener(
         runnable: Runnable,
-        playerTime: MutableLiveData<String>,
-        isTrackEnded: MutableLiveData<Boolean>
+        playerTime: TextView,
+        playerStateLiveData: MutableLiveData<PlayerState>
     ) {
-        repository.setOnCompletionListener(runnable, playerTime, isTrackEnded)
+        repository.setOnCompletionListener(runnable, playerTime, playerStateLiveData)
     }
 }

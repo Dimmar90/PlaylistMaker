@@ -20,7 +20,7 @@
         <item name="iconTint">@color/black</item>
     </style>
 
-    <style name="SettingsBackGroundStyle">
+    <style name="BackGroundStyle">
         <item name="android:background">@color/white</item>
     </style>
 
