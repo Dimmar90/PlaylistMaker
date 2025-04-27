@@ -23,50 +23,50 @@ import com.practicum.playlistmaker.settings.data.SettingsRepositoryImpl
 
 object Creator {
 
-    private const val SEARCH_HISTORY = "search_activity_preferences"
-    private const val SETTINGS = "settings"
+//    private const val SEARCH_HISTORY = "search_activity_preferences"
+//    private const val SETTINGS = "settings"
 
-    private fun getSearchTracksRepository(
-        networkClient: NetworkClient
-    ): SearchTracksRepository {
-        return SearchTracksRepositoryImpl(networkClient)
-    }
+//    private fun getSearchTracksRepository(
+//        networkClient: NetworkClient
+//    ): SearchTracksRepository {
+//        return SearchTracksRepositoryImpl(networkClient)
+//    }
+//
+//    fun provideSearchTracksInteractor(
+//        networkClient: NetworkClient
+//    ): SearchTracksInteractor {
+//        val repository = getSearchTracksRepository(networkClient)
+//        return SearchTracksInteractorImpl(repository)
+//    }
 
-    fun provideSearchTracksInteractor(
-        networkClient: NetworkClient
-    ): SearchTracksInteractor {
-        val repository = getSearchTracksRepository(networkClient)
-        return SearchTracksInteractorImpl(repository)
-    }
+//    private fun getSearchHistoryRepository(context: Context): SearchHistoryRepository {
+//        val sharedPrefs: SharedPreferences =
+//            context.getSharedPreferences(SEARCH_HISTORY, MODE_PRIVATE)
+//        return SearchHistoryRepositoryImpl(sharedPrefs)
+//    }
+//
+//    fun provideSearchHistoryInteractor(context: Context): SearchHistoryInteractor {
+//        val repository = getSearchHistoryRepository(context)
+//        return SearchHistoryInteractorImpl(repository)
+//    }
 
-    private fun getSearchHistoryRepository(context: Context): SearchHistoryRepository {
-        val sharedPrefs: SharedPreferences =
-            context.getSharedPreferences(SEARCH_HISTORY, MODE_PRIVATE)
-        return SearchHistoryRepositoryImpl(sharedPrefs)
-    }
+//    private fun getPlayerRepository(): PlayerRepository {
+//        return PlayerRepositoryImpl()
+//    }
+//
+//    fun providePlayerInteractor(): PlayerInteractor {
+//        val repository = getPlayerRepository()
+//        return PlayerInteractorImpl(repository)
+//    }
 
-    fun provideSearchHistoryInteractor(context: Context): SearchHistoryInteractor {
-        val repository = getSearchHistoryRepository(context)
-        return SearchHistoryInteractorImpl(repository)
-    }
-
-    private fun getPlayerRepository(): PlayerRepository {
-        return PlayerRepositoryImpl()
-    }
-
-    fun providePlayerInteractor(): PlayerInteractor {
-        val repository = getPlayerRepository()
-        return PlayerInteractorImpl(repository)
-    }
-
-    private fun getSettingsRepository(context: Context): SettingsRepository {
-        val sharedPrefs: SharedPreferences =
-            context.getSharedPreferences(SETTINGS, MODE_PRIVATE)
-        return SettingsRepositoryImpl(sharedPrefs)
-    }
-
-    fun provideSettingsInteractor(context: Context): SettingsInteractor {
-        val repository = getSettingsRepository(context)
-        return SettingsInteractorImpl(repository)
-    }
+//    private fun getSettingsRepository(context: Context): SettingsRepository {
+//        val sharedPrefs: SharedPreferences =
+//            context.getSharedPreferences(SETTINGS, MODE_PRIVATE)
+//        return SettingsRepositoryImpl(sharedPrefs)
+//    }
+//
+//    fun provideSettingsInteractor(context: Context): SettingsInteractor {
+//        val repository = getSettingsRepository(context)
+//        return SettingsInteractorImpl(repository)
+//    }
 }

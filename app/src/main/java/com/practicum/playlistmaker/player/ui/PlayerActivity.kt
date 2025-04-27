@@ -5,15 +5,14 @@ import android.os.Bundle
 import android.widget.TextView
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.ViewModelProvider
 import com.google.android.material.button.MaterialButton
 import com.practicum.playlistmaker.R
-import com.practicum.playlistmaker.creator.Creator
 import com.practicum.playlistmaker.databinding.ActivityAudioPlayerBinding
+import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class PlayerActivity : AppCompatActivity() {
 
-    private lateinit var viewModel: PlayerViewModel
+    private val viewModel: PlayerViewModel by viewModel()
     private lateinit var binding: ActivityAudioPlayerBinding
 
     private lateinit var playButton: MaterialButton
@@ -23,15 +22,6 @@ class PlayerActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_audio_player)
-
-        viewModel = ViewModelProvider(
-            this,
-            PlayerViewModel.getViewModelFactory(
-                application,
-                Creator.providePlayerInteractor(),
-                Creator.provideSearchHistoryInteractor(this)
-            ),
-        )[PlayerViewModel::class.java]
 
         binding = ActivityAudioPlayerBinding.inflate(layoutInflater)
         setContentView(binding.root)
@@ -61,7 +51,7 @@ class PlayerActivity : AppCompatActivity() {
             trackCountry
         )
 
-        viewModel.observePlayerState.observe(this) { playerState ->
+        viewModel.observePlayerState().observe(this) { playerState ->
             putPlayerState(playerState)
         }
 
