@@ -1,5 +1,6 @@
 package com.practicum.playlistmaker.search.data.impl
 
+import android.annotation.SuppressLint
 import android.content.SharedPreferences
 import com.google.gson.GsonBuilder
 import com.practicum.playlistmaker.search.data.dto.TrackDto
@@ -44,9 +45,10 @@ class SearchHistoryRepositoryImpl(
             .apply()
     }
 
+    @SuppressLint("CommitPrefEdits")
     override fun clearHistory() {
         searchHistoryList.clear()
-        sharedPrefs.edit().clear().apply()
+        sharedPrefs.edit().remove(SEARCH_KEY).apply()
     }
 
     companion object {

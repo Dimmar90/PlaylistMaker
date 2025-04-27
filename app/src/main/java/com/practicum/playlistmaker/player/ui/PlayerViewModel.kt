@@ -56,6 +56,10 @@ class PlayerViewModel(
         playerState.postValue(PlayerState.StatePaused)
     }
 
+    fun resetPlayer() {
+        playerInteractor.resetPlayer(runnable)
+    }
+
     fun playbackControl() {
         when (playerState.value) {
             is PlayerState.StateDefault -> {

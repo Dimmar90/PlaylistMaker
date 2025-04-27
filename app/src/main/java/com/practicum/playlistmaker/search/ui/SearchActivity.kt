@@ -107,6 +107,10 @@ class SearchActivity : AppCompatActivity(), TracksAdapter.TrackListener {
             }
         })
 
+        updateButton.setOnClickListener{
+            viewModel.searchDebounce(editText.text.toString())
+        }
+
         returnButton.setOnClickListener {
             startActivity(mainIntent)
             finish()
@@ -212,10 +216,10 @@ class SearchActivity : AppCompatActivity(), TracksAdapter.TrackListener {
 
     @SuppressLint("NotifyDataSetChanged")
     override fun onTrackClick(track: Track) {
-        val intent = Intent(this, PlayerActivity::class.java)
-        putExtras(intent, track)
         viewModel.addTrackToHistory(track)
         historyAdapter.notifyDataSetChanged()
+        val intent = Intent(this, PlayerActivity::class.java)
+        putExtras(intent, track)
         startActivity(intent)
     }
 

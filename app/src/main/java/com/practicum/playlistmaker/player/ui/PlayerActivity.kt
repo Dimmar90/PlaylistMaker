@@ -58,12 +58,14 @@ class PlayerActivity : AppCompatActivity() {
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
                 viewModel.pausePlayer()
+                viewModel.resetPlayer()
                 finish()
             }
         })
 
         returnButton.setOnClickListener {
             viewModel.pausePlayer()
+            viewModel.resetPlayer()
             finish()
         }
     }

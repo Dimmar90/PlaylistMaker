@@ -42,6 +42,10 @@ class PlayerRepositoryImpl : PlayerRepository {
         handler.removeCallbacks(runnable)
     }
 
+    override fun resetPlayer(runnable: Runnable) {
+        mediaPlayer.reset()
+    }
+
     override fun playbackControl(runnable: Runnable): Int {
         when (playerState) {
             STATE_PLAYING -> {
