@@ -1,24 +1,16 @@
-package com.practicum.playlistmaker.player.domain.impl
+package com.practicum.playlistmaker.player.data
 
 import android.icu.text.SimpleDateFormat
 import android.media.MediaPlayer
 import android.os.Handler
 import android.os.Looper
 import android.widget.TextView
-import com.google.android.material.button.MaterialButton
-import com.practicum.playlistmaker.R
+import androidx.lifecycle.MutableLiveData
 import com.practicum.playlistmaker.player.domain.api.PlayerRepository
+import com.practicum.playlistmaker.player.ui.PlayerState
 import java.util.Locale
 
 class PlayerRepositoryImpl : PlayerRepository {
-
-    companion object {
-        private const val STATE_DEFAULT = 0
-        private const val STATE_PREPARED = 1
-        private const val STATE_PLAYING = 2
-        private const val STATE_PAUSED = 3
-        private const val REFRESH_PLAYER_TIME_DELAY_MILLIS = 1000L
-    }
 
     private var playerState = STATE_DEFAULT
 
@@ -66,16 +58,26 @@ class PlayerRepositoryImpl : PlayerRepository {
     }
 
     override fun refreshPlayerTime(runnable: Runnable, playerTime: TextView) {
-        playerTime.text =
-            SimpleDateFormat("mm:ss", Locale.getDefault()).format(mediaPlayer.currentPosition)
+        playerTime.text = SimpleDateFormat("mm:ss", Locale.getDefault()).format(mediaPlayer.currentPosition).toString()
         handler.postDelayed(runnable, REFRESH_PLAYER_TIME_DELAY_MILLIS)
     }
 
-    override fun setOnCompletionListener(runnable: Runnable, playerTime: TextView, playTrackButton: MaterialButton) {
+    override fun setOnCompletionListener(
+        runnable: Runnable,
+        playerTime: TextView,
+        playerStateLiveData: MutableLiveData<PlayerState>
+    ) {
         mediaPlayer.setOnCompletionListener {
             pausePlayer(runnable)
-            playerTime.text = "00:00"
-            playTrackButton.setIconResource(R.drawable.play_track_button_icon)
+            playerStateLiveData.value = PlayerState.StateTrackEnded
         }
+    }
+
+    companion object {
+        private const val STATE_DEFAULT = 0
+        private const val STATE_PREPARED = 1
+        private const val STATE_PLAYING = 2
+        private const val STATE_PAUSED = 3
+        private const val REFRESH_PLAYER_TIME_DELAY_MILLIS = 1000L
     }
 }

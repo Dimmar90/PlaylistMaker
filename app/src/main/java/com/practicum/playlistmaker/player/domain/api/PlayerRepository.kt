@@ -1,7 +1,8 @@
 package com.practicum.playlistmaker.player.domain.api
 
 import android.widget.TextView
-import com.google.android.material.button.MaterialButton
+import androidx.lifecycle.MutableLiveData
+import com.practicum.playlistmaker.player.ui.PlayerState
 
 interface PlayerRepository {
     fun preparePlayer(url: String)
@@ -9,5 +10,5 @@ interface PlayerRepository {
     fun pausePlayer(runnable: Runnable)
     fun playbackControl(runnable: Runnable): Int
     fun refreshPlayerTime(runnable: Runnable, playerTime: TextView)
-    fun setOnCompletionListener(runnable: Runnable, playerTime: TextView, playTrackButton: MaterialButton)
+    fun setOnCompletionListener(runnable: Runnable, playerTime: TextView, playerStateLiveData: MutableLiveData<PlayerState>)
 }

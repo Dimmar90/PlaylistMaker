@@ -4,10 +4,10 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.practicum.playlistmaker.R
-import com.practicum.playlistmaker.search.data.dto.TrackDto
+import com.practicum.playlistmaker.search.domain.models.Track
 
 class TracksAdapter(
-    private val tracks: List<TrackDto>,
+    private val tracks: ArrayList<Track>,
     private val trackListener: TrackListener
 ) : RecyclerView.Adapter<TracksViewHolder>() {
 
@@ -24,6 +24,6 @@ class TracksAdapter(
     override fun getItemCount() = tracks.size
 
     interface TrackListener {
-        fun onTrackClick(track: TrackDto)
+        fun onTrackClick(track: Track)
     }
 }

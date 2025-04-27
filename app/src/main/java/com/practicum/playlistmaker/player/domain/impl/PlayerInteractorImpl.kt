@@ -1,11 +1,13 @@
 package com.practicum.playlistmaker.player.domain.impl
 
 import android.widget.TextView
-import com.google.android.material.button.MaterialButton
+import androidx.lifecycle.MutableLiveData
 import com.practicum.playlistmaker.player.domain.api.PlayerInteractor
 import com.practicum.playlistmaker.player.domain.api.PlayerRepository
+import com.practicum.playlistmaker.player.ui.PlayerState
 
 class PlayerInteractorImpl(private val repository: PlayerRepository) : PlayerInteractor {
+
     override fun preparePlayer(url: String) {
         repository.preparePlayer(url)
     }
@@ -18,7 +20,7 @@ class PlayerInteractorImpl(private val repository: PlayerRepository) : PlayerInt
         repository.pausePlayer(runnable)
     }
 
-    override fun playbackControl(runnable: Runnable) : Int {
+    override fun playbackControl(runnable: Runnable): Int {
         return repository.playbackControl(runnable)
     }
 
@@ -26,7 +28,11 @@ class PlayerInteractorImpl(private val repository: PlayerRepository) : PlayerInt
         repository.refreshPlayerTime(runnable, playerTime)
     }
 
-    override fun setOnCompletionListener(runnable: Runnable, playerTime: TextView, playTrackButton: MaterialButton) {
-        repository.setOnCompletionListener(runnable, playerTime, playTrackButton)
+    override fun setOnCompletionListener(
+        runnable: Runnable,
+        playerTime: TextView,
+        playerStateLiveData: MutableLiveData<PlayerState>
+    ) {
+        repository.setOnCompletionListener(runnable, playerTime, playerStateLiveData)
     }
 }

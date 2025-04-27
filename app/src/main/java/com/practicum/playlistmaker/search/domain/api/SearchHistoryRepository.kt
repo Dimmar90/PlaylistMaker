@@ -1,10 +1,10 @@
 package com.practicum.playlistmaker.search.domain.api
 
-import androidx.recyclerview.widget.RecyclerView
 import com.practicum.playlistmaker.search.data.dto.TrackDto
+import com.practicum.playlistmaker.search.domain.models.Track
 
 interface SearchHistoryRepository {
-    fun getHistory(searchHistoryListRecycler: RecyclerView): MutableList<TrackDto>
-    fun saveHistory(historyMap: MutableMap<String, String>)
+    fun getHistory(): List<Track>
+    fun addTrackToHistory(track: TrackDto)
     fun clearHistory()
 }
