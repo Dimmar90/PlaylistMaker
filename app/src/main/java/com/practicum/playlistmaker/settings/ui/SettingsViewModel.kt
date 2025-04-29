@@ -4,9 +4,6 @@ import androidx.appcompat.app.AppCompatDelegate
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.viewmodel.initializer
-import androidx.lifecycle.viewmodel.viewModelFactory
 import com.practicum.playlistmaker.settings.domain.api.SettingsInteractor
 
 class SettingsViewModel(private val settingsInteractor: SettingsInteractor) :
@@ -36,15 +33,5 @@ class SettingsViewModel(private val settingsInteractor: SettingsInteractor) :
                 AppCompatDelegate.MODE_NIGHT_NO
             }
         )
-    }
-
-    companion object {
-        fun getViewModelFactory(
-            settingsInteractor: SettingsInteractor
-        ): ViewModelProvider.Factory = viewModelFactory {
-            initializer {
-                SettingsViewModel(settingsInteractor)
-            }
-        }
     }
 }

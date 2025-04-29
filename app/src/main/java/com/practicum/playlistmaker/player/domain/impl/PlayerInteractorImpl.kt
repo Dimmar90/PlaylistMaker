@@ -20,6 +20,10 @@ class PlayerInteractorImpl(private val repository: PlayerRepository) : PlayerInt
         repository.pausePlayer(runnable)
     }
 
+    override fun resetPlayer(runnable: Runnable) {
+        repository.resetPlayer(runnable)
+    }
+
     override fun playbackControl(runnable: Runnable): Int {
         return repository.playbackControl(runnable)
     }

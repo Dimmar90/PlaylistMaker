@@ -4,12 +4,9 @@ import android.annotation.SuppressLint
 import android.app.Application
 import android.widget.ImageView
 import android.widget.TextView
-import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.viewmodel.initializer
-import androidx.lifecycle.viewmodel.viewModelFactory
+import androidx.lifecycle.ViewModel
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.practicum.playlistmaker.R
@@ -23,12 +20,12 @@ class PlayerViewModel(
     private var application: Application,
     private var playerInteractor: PlayerInteractor,
     historyInteractor: SearchHistoryInteractor,
-) : AndroidViewModel(application) {
+    ) : ViewModel() {
 
     private val track: Track = historyInteractor.getHistory().first()
 
     private val playerState = MutableLiveData<PlayerState>()
-    val observePlayerState: LiveData<PlayerState> = playerState
+    fun observePlayerState(): LiveData<PlayerState> = playerState
 
     @SuppressLint("StaticFieldLeak")
     private val currentTime = TextView(application)
@@ -57,6 +54,10 @@ class PlayerViewModel(
     fun pausePlayer() {
         playerInteractor.pausePlayer(runnable)
         playerState.postValue(PlayerState.StatePaused)
+    }
+
+    fun resetPlayer() {
+        playerInteractor.resetPlayer(runnable)
     }
 
     fun playbackControl() {
@@ -108,17 +109,5 @@ class PlayerViewModel(
         trackReleaseDate.text = track.releaseDate.take(4)
         trackGenre.text = track.primaryGenreName
         trackCountry.text = track.country
-    }
-
-    companion object {
-        fun getViewModelFactory(
-            application: Application,
-            playerInteractor: PlayerInteractor,
-            historyInteractor: SearchHistoryInteractor,
-        ): ViewModelProvider.Factory = viewModelFactory {
-            initializer {
-                PlayerViewModel(application, playerInteractor, historyInteractor)
-            }
-        }
     }
 }

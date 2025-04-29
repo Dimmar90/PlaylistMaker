@@ -14,23 +14,19 @@ import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
 import androidx.core.widget.addTextChangedListener
-import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.button.MaterialButton
 import com.practicum.playlistmaker.R
-import com.practicum.playlistmaker.creator.Creator
 import com.practicum.playlistmaker.databinding.ActivitySearchBinding
 import com.practicum.playlistmaker.main.ui.MainActivity
 import com.practicum.playlistmaker.player.ui.PlayerActivity
-import com.practicum.playlistmaker.search.data.network.RetrofitNetworkClient
 import com.practicum.playlistmaker.search.domain.models.Track
 import com.practicum.playlistmaker.search.domain.models.TracksState
+import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class SearchActivity : AppCompatActivity(), TracksAdapter.TrackListener {
-    @SuppressLint("MissingInflatedId", "ResourceAsColor", "WrongViewCast")
-
-    private lateinit var viewModel: SearchViewModel
+    private val viewModel: SearchViewModel by viewModel()
     private lateinit var binding: ActivitySearchBinding
 
     private val tracks = ArrayList<Track>()
@@ -55,17 +51,6 @@ class SearchActivity : AppCompatActivity(), TracksAdapter.TrackListener {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_search)
-
-        viewModel = ViewModelProvider(
-            this,
-            SearchViewModel.getViewModelFactory(
-                this,
-                Creator.provideSearchTracksInteractor(
-                    RetrofitNetworkClient(this)
-                ),
-                Creator.provideSearchHistoryInteractor(this)
-            )
-        )[SearchViewModel::class.java]
 
         binding = ActivitySearchBinding.inflate(layoutInflater)
         setContentView(binding.root)
@@ -121,6 +106,10 @@ class SearchActivity : AppCompatActivity(), TracksAdapter.TrackListener {
                 finish()
             }
         })
+
+        updateButton.setOnClickListener{
+            viewModel.searchDebounce(editText.text.toString())
+        }
 
         returnButton.setOnClickListener {
             startActivity(mainIntent)
@@ -227,10 +216,10 @@ class SearchActivity : AppCompatActivity(), TracksAdapter.TrackListener {
 
     @SuppressLint("NotifyDataSetChanged")
     override fun onTrackClick(track: Track) {
-        val intent = Intent(this, PlayerActivity::class.java)
-        putExtras(intent, track)
         viewModel.addTrackToHistory(track)
         historyAdapter.notifyDataSetChanged()
+        val intent = Intent(this, PlayerActivity::class.java)
+        putExtras(intent, track)
         startActivity(intent)
     }
 
