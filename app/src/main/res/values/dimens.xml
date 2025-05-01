@@ -13,5 +13,5 @@
     <dimen name="guid_line_size">24dp</dimen>
     <dimen name="empty_search_image_size">120dp</dimen>
     <dimen name="empty_media_message_size">19sp</dimen>
-    <dimen name="add_playlist_message_size">10sp</dimen>
+    <dimen name="add_playlist_message_size">14sp</dimen>
 </resources>

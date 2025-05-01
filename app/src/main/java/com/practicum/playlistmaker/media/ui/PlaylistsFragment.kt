@@ -16,18 +16,23 @@ class PlaylistsFragment : Fragment() {
     }
 
     private val viewModel: PlaylistsViewModel by viewModel()
-    private lateinit var binding: FragmentPlaylistsBinding
+    private var binding: FragmentPlaylistsBinding? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
         binding = FragmentPlaylistsBinding.inflate(inflater, container, false)
-        return binding.root
+        return binding!!.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        binding.emptyPlaylistsLayout.isVisible = true
+        binding!!.emptyPlaylistsLayout.isVisible = true
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        binding = null
     }
 }

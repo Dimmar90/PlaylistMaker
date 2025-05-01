@@ -1,14 +1,12 @@
 package com.practicum.playlistmaker.media.ui
 
 import android.annotation.SuppressLint
-import android.content.Intent
 import android.os.Bundle
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.tabs.TabLayoutMediator
 import com.practicum.playlistmaker.R
 import com.practicum.playlistmaker.databinding.ActivityMediaBinding
-import com.practicum.playlistmaker.main.ui.MainActivity
 
 class MediaActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMediaBinding
@@ -23,7 +21,6 @@ class MediaActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         val returnButton = binding.mediaReturnButton
-        val mainIntent = Intent(application.applicationContext, MainActivity::class.java)
 
         binding.viewPager.adapter = MediaAdapter(supportFragmentManager, lifecycle)
 
@@ -38,13 +35,11 @@ class MediaActivity : AppCompatActivity() {
         tabMediator.attach()
 
         returnButton.setOnClickListener {
-            startActivity(mainIntent)
             finish()
         }
 
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
-                startActivity(mainIntent)
                 finish()
             }
         })

@@ -16,18 +16,23 @@ class FavoritesFragment : Fragment() {
     }
 
     private val viewModel: FavoritesViewModel by viewModel()
-    private lateinit var binding: FragmentFavoritesBinding
+    private var binding: FragmentFavoritesBinding? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
         binding = FragmentFavoritesBinding.inflate(inflater, container, false)
-        return binding.root
+        return binding!!.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        binding.emptyMediaLayout.isVisible = true
+        binding!!.emptyMediaLayout.isVisible = true
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        binding = null
     }
 }
