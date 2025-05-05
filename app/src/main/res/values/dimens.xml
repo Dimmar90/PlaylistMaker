@@ -11,4 +11,7 @@
     <dimen name="track_name_size">16dp</dimen>
     <dimen name="track_description_text_size">11dp</dimen>
     <dimen name="guid_line_size">24dp</dimen>
+    <dimen name="empty_search_image_size">120dp</dimen>
+    <dimen name="empty_media_message_size">19sp</dimen>
+    <dimen name="add_playlist_message_size">14sp</dimen>
 </resources>

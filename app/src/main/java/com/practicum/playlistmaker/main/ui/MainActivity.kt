@@ -41,7 +41,6 @@ class MainActivity : AppCompatActivity() {
 
         mediaButton.setOnClickListener {
             startActivity(mediaIntent)
-            finish()
         }
 
         settingsButton.setOnClickListener {

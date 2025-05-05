@@ -165,4 +165,22 @@
         <item name="layout_constraintEnd_toEndOf">parent</item>
     </style>
 
+    <style name="TabTitleStyle">
+        <item name="android:textSize">14sp</item>
+    </style>
+
+    <style name="TabStyle">
+        <item name="android:background">@color/black</item>
+        <item name="tabIndicatorColor">@color/white</item>
+        <item name="tabTextColor">@color/white</item>
+    </style>
+
+    <style name="EmptySearchImageStyle">
+        <item name="android:src">@drawable/empty_search_image_dark_mode</item>
+    </style>
+
+    <style name="PlaylistsButtonStyle">
+        <item name="backgroundTint">@color/white</item>
+    </style>
+
 </resources>
