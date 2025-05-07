@@ -1,6 +1,5 @@
 package com.practicum.playlistmaker.settings.ui
 
-import androidx.appcompat.app.AppCompatDelegate
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -26,12 +25,6 @@ class SettingsViewModel(private val settingsInteractor: SettingsInteractor) :
     }
 
     fun setTheme() {
-        AppCompatDelegate.setDefaultNightMode(
-            if (switchState.value == true) {
-                AppCompatDelegate.MODE_NIGHT_YES
-            } else {
-                AppCompatDelegate.MODE_NIGHT_NO
-            }
-        )
+        settingsInteractor.setTheme()
     }
 }

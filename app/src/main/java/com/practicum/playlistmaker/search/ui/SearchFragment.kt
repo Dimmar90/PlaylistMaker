@@ -3,31 +3,29 @@ package com.practicum.playlistmaker.search.ui
 import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Bundle
+import android.view.LayoutInflater
 import android.view.View
+import android.view.ViewGroup
 import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageView
 import android.widget.ProgressBar
 import android.widget.RelativeLayout
 import android.widget.TextView
-import androidx.activity.OnBackPressedCallback
-import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
 import androidx.core.widget.addTextChangedListener
+import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.google.android.material.button.MaterialButton
-import com.practicum.playlistmaker.R
-import com.practicum.playlistmaker.databinding.ActivitySearchBinding
-import com.practicum.playlistmaker.main.ui.MainActivity
+import com.practicum.playlistmaker.databinding.FragmentSearchBinding
 import com.practicum.playlistmaker.player.ui.PlayerActivity
 import com.practicum.playlistmaker.search.domain.models.Track
 import com.practicum.playlistmaker.search.domain.models.TracksState
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
-class SearchActivity : AppCompatActivity(), TracksAdapter.TrackListener {
+class SearchFragment : Fragment(), TracksAdapter.TrackListener {
+    private lateinit var binding: FragmentSearchBinding
     private val viewModel: SearchViewModel by viewModel()
-    private lateinit var binding: ActivitySearchBinding
 
     private val tracks = ArrayList<Track>()
     private lateinit var tracksRecycler: RecyclerView
@@ -37,7 +35,6 @@ class SearchActivity : AppCompatActivity(), TracksAdapter.TrackListener {
     private lateinit var connectionImage: ImageView
     private lateinit var connectionMessage: TextView
     private lateinit var connectionExtraMessage: TextView
-    private lateinit var returnButton: MaterialButton
     private lateinit var updateButton: Button
     private lateinit var progressBar: ProgressBar
 
@@ -47,37 +44,34 @@ class SearchActivity : AppCompatActivity(), TracksAdapter.TrackListener {
     private lateinit var searchHistoryLayout: RelativeLayout
     private lateinit var clearHistoryButton: Button
 
-    @SuppressLint("NotifyDataSetChanged")
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_search)
-
-        binding = ActivitySearchBinding.inflate(layoutInflater)
-        setContentView(binding.root)
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
+        binding = FragmentSearchBinding.inflate(inflater, container, false)
 
         val searchView = binding.searchBar
         editText =
             (searchView.findViewById(androidx.appcompat.R.id.search_src_text))
 
         tracksRecycler = binding.tracksList
-        tracksRecycler.layoutManager = LinearLayoutManager(this)
+        tracksRecycler.layoutManager = LinearLayoutManager(requireContext())
         tracksRecycler.adapter = tracksAdapter
 
         connectionImage = binding.connectionImage
         connectionMessage = binding.connectionText
         connectionExtraMessage = binding.extraConnectionText
-        returnButton = binding.searchReturnButton
         updateButton = binding.updateSearchButton
         progressBar = binding.progressBar
 
         searchHistoryLayout = binding.searchHistory
         historyRecycler = binding.searchHistoryList
-        historyRecycler.layoutManager = LinearLayoutManager(this)
+        historyRecycler.layoutManager = LinearLayoutManager(requireContext())
         historyRecycler.adapter = historyAdapter
         clearHistoryButton = binding.clearHistoryButton
-        val mainIntent = Intent(application.applicationContext, MainActivity::class.java)
 
-        viewModel.observeState().observe(this) { state ->
+        viewModel.observeState().observe(viewLifecycleOwner) { state ->
             render(state)
         }
 
@@ -90,6 +84,7 @@ class SearchActivity : AppCompatActivity(), TracksAdapter.TrackListener {
 
                 if (editText.hasFocus() && s?.isEmpty() == true) {
                     viewModel.visibilityOfHistory()
+
                 }
             },
             afterTextChanged = { _ -> }
@@ -100,21 +95,11 @@ class SearchActivity : AppCompatActivity(), TracksAdapter.TrackListener {
             viewModel.visibilityOfHistory()
         }
 
-        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
-            override fun handleOnBackPressed() {
-                startActivity(mainIntent)
-                finish()
-            }
-        })
-
-        updateButton.setOnClickListener{
+        updateButton.setOnClickListener {
             viewModel.searchDebounce(editText.text.toString())
         }
 
-        returnButton.setOnClickListener {
-            startActivity(mainIntent)
-            finish()
-        }
+        return binding.root
     }
 
     private fun render(state: TracksState) {
@@ -218,7 +203,7 @@ class SearchActivity : AppCompatActivity(), TracksAdapter.TrackListener {
     override fun onTrackClick(track: Track) {
         viewModel.addTrackToHistory(track)
         historyAdapter.notifyDataSetChanged()
-        val intent = Intent(this, PlayerActivity::class.java)
+        val intent = Intent(requireActivity(), PlayerActivity::class.java)
         putExtras(intent, track)
         startActivity(intent)
     }

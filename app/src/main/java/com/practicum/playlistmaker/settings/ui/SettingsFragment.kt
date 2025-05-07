@@ -4,31 +4,31 @@ import android.annotation.SuppressLint
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
-import androidx.activity.OnBackPressedCallback
-import androidx.appcompat.app.AppCompatActivity
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import androidx.fragment.app.Fragment
 import com.practicum.playlistmaker.R
-import com.practicum.playlistmaker.databinding.ActivitySettingsBinding
-import com.practicum.playlistmaker.main.ui.MainActivity
+import com.practicum.playlistmaker.databinding.FragmentSettingsBinding
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
-class SettingsActivity : AppCompatActivity() {
+class SettingsFragment : Fragment() {
 
     private val viewModel: SettingsViewModel by viewModel()
-    private lateinit var binding: ActivitySettingsBinding
+    private lateinit var binding: FragmentSettingsBinding
 
     @SuppressLint("UseSwitchCompatOrMaterialCode")
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_settings)
-
-        binding = ActivitySettingsBinding.inflate(layoutInflater)
-        setContentView(binding.root)
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
+        binding = FragmentSettingsBinding.inflate(inflater, container, false)
 
         val themeSwitcher = binding.themeSwitcher
         val sharingButton = binding.sharingButton
         val supportButton = binding.supportButton
         val termsOfUseButton = binding.termsOfUse
-        val returnButton = binding.returnButton
 
         val sendIntent: Intent = Intent().apply {
             action = Intent.ACTION_SEND
@@ -40,8 +40,6 @@ class SettingsActivity : AppCompatActivity() {
         val offerIntent =
             Intent(Intent.ACTION_VIEW, Uri.parse(getString(R.string.offer)))
 
-        val mainIntent = Intent(this, MainActivity::class.java)
-
         val supportIntent = Intent(Intent.ACTION_SENDTO)
         supportIntent.data = Uri.parse("mailto:")
         supportIntent.putExtra(
@@ -51,7 +49,7 @@ class SettingsActivity : AppCompatActivity() {
         supportIntent.putExtra(Intent.EXTRA_SUBJECT, getString(R.string.support_subject))
         supportIntent.putExtra(Intent.EXTRA_TEXT, getString(R.string.support_message))
 
-        viewModel.observeSwitchState().observe(this) { switcherIsChecked ->
+        viewModel.observeSwitchState().observe(viewLifecycleOwner) { switcherIsChecked ->
             themeSwitcher.setChecked(switcherIsChecked)
             viewModel.setTheme()
         }
@@ -72,16 +70,6 @@ class SettingsActivity : AppCompatActivity() {
             startActivity(offerIntent)
         }
 
-        returnButton.setOnClickListener {
-            startActivity(mainIntent)
-            finish()
-        }
-
-        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
-            override fun handleOnBackPressed() {
-                startActivity(mainIntent)
-                finish()
-            }
-        })
+        return binding.root
     }
 }
