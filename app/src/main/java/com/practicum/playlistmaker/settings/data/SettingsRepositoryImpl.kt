@@ -1,6 +1,7 @@
 package com.practicum.playlistmaker.settings.data
 
 import android.content.SharedPreferences
+import androidx.appcompat.app.AppCompatDelegate
 import com.practicum.playlistmaker.settings.domain.api.SettingsRepository
 
 class SettingsRepositoryImpl(private val sharedPrefs: SharedPreferences) : SettingsRepository {
@@ -9,7 +10,17 @@ class SettingsRepositoryImpl(private val sharedPrefs: SharedPreferences) : Setti
     }
 
     override fun loadThemeSwitcher(): Boolean {
-        val isThemeSwitcherDayMode = sharedPrefs.getBoolean("switchState", true)
-        return isThemeSwitcherDayMode
+        val isThemeSwitcherNightMode = sharedPrefs.getBoolean("switchState", true)
+        return isThemeSwitcherNightMode
+    }
+
+    override fun setTheme() {
+        AppCompatDelegate.setDefaultNightMode(
+            if (loadThemeSwitcher()) {
+                AppCompatDelegate.MODE_NIGHT_YES
+            } else {
+                AppCompatDelegate.MODE_NIGHT_NO
+            }
+        )
     }
 }

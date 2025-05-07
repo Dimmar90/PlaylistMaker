@@ -11,4 +11,8 @@ class SettingsInteractorImpl(private val repository: SettingsRepository) : Setti
     override fun loadThemeSwitcher(): Boolean {
         return repository.loadThemeSwitcher()
     }
+
+    override fun setTheme() {
+        repository.setTheme()
+    }
 }
