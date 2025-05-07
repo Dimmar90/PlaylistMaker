@@ -1,7 +1,6 @@
 package com.practicum.playlistmaker.main.ui
 
 import androidx.appcompat.app.AppCompatDelegate
-import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.practicum.playlistmaker.settings.domain.api.SettingsInteractor
@@ -11,7 +10,6 @@ class MainViewModel(
 ) : ViewModel() {
 
     private val switchState = MutableLiveData<Boolean>()
-    fun observeSwitchState(): LiveData<Boolean> = switchState
 
     init {
         switchState.value = getSwitchState()
