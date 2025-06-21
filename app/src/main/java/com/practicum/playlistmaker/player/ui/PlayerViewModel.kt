@@ -7,12 +7,18 @@ import android.widget.TextView
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.practicum.playlistmaker.R
 import com.practicum.playlistmaker.player.domain.api.PlayerInteractor
+import com.practicum.playlistmaker.player.ui.PlayerState.StatePlaying
 import com.practicum.playlistmaker.search.domain.api.SearchHistoryInteractor
 import com.practicum.playlistmaker.search.domain.models.Track
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Locale
 
@@ -20,38 +26,37 @@ class PlayerViewModel(
     private var application: Application,
     private var playerInteractor: PlayerInteractor,
     historyInteractor: SearchHistoryInteractor,
-    ) : ViewModel() {
+) : ViewModel() {
 
     private val track: Track = historyInteractor.getHistory().first()
 
     private val playerState = MutableLiveData<PlayerState>()
     fun observePlayerState(): LiveData<PlayerState> = playerState
 
+    private var progressJob: Job? = null
+
     @SuppressLint("StaticFieldLeak")
     private val currentTime = TextView(application)
 
-    private val runnable: Runnable = object : Runnable {
-        override fun run() {
-            playerInteractor.refreshPlayerTime(this, currentTime)
-            playerState.postValue(PlayerState.StatePlaying(currentTime.text.toString()))
-        }
-    }
+    private val runnable: Runnable = Runnable { refreshPlayerTime() }
 
     init {
         preparePlayer()
     }
 
     private fun preparePlayer() {
+        progressJob?.cancel()
         playerInteractor.preparePlayer(track.previewUrl)
         playerState.postValue(PlayerState.StateDefault)
     }
 
     private fun startPlayer() {
         playerInteractor.startPlayer(runnable)
-        playerState.postValue(PlayerState.StatePlaying(currentTime.text.toString()))
+        playerState.postValue(StatePlaying(currentTime.text.toString()))
     }
 
     fun pausePlayer() {
+        progressJob?.cancel()
         playerInteractor.pausePlayer(runnable)
         playerState.postValue(PlayerState.StatePaused)
     }
@@ -66,7 +71,7 @@ class PlayerViewModel(
                 startPlayer()
             }
 
-            is PlayerState.StatePlaying -> {
+            is StatePlaying -> {
                 pausePlayer()
             }
 
@@ -80,7 +85,20 @@ class PlayerViewModel(
 
             null -> {}
         }
-        playerInteractor.setOnCompletionListener(runnable, currentTime, playerState)
+        playerInteractor.setOnCompletionListener(playerState)
+    }
+
+    private fun refreshPlayerTime() {
+        progressJob = viewModelScope.launch {
+            while (isActive) {
+                playerInteractor.refreshPlayerTime(currentTime)
+                playerState.postValue(StatePlaying(currentTime.text.toString()))
+                delay(REFRESH_PLAYER_TIME_DELAY_MILLIS)
+                if (currentTime.text.toString() == "00:29") {
+                    progressJob?.cancel()
+                }
+            }
+        }
     }
 
     fun addTrackCover(trackCover: ImageView) {
@@ -109,5 +127,9 @@ class PlayerViewModel(
         trackReleaseDate.text = track.releaseDate.take(4)
         trackGenre.text = track.primaryGenreName
         trackCountry.text = track.country
+    }
+
+    companion object {
+        private const val REFRESH_PLAYER_TIME_DELAY_MILLIS = 300L
     }
 }

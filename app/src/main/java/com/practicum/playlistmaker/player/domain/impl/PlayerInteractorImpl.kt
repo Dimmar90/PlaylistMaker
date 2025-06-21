@@ -28,15 +28,13 @@ class PlayerInteractorImpl(private val repository: PlayerRepository) : PlayerInt
         return repository.playbackControl(runnable)
     }
 
-    override fun refreshPlayerTime(runnable: Runnable, playerTime: TextView) {
-        repository.refreshPlayerTime(runnable, playerTime)
+    override fun refreshPlayerTime(playerTime: TextView) {
+        repository.refreshPlayerTime(playerTime)
     }
 
     override fun setOnCompletionListener(
-        runnable: Runnable,
-        playerTime: TextView,
         playerStateLiveData: MutableLiveData<PlayerState>
     ) {
-        repository.setOnCompletionListener(runnable, playerTime, playerStateLiveData)
+        repository.setOnCompletionListener(playerStateLiveData)
     }
 }

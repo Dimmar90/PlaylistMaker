@@ -10,6 +10,6 @@ interface PlayerInteractor {
     fun pausePlayer(runnable: Runnable)
     fun resetPlayer(runnable: Runnable)
     fun playbackControl(runnable: Runnable): Int
-    fun refreshPlayerTime(runnable: Runnable, playerTime: TextView)
-    fun setOnCompletionListener(runnable: Runnable, playerTime: TextView, playerStateLiveData: MutableLiveData<PlayerState>)
+    fun refreshPlayerTime(playerTime: TextView)
+    fun setOnCompletionListener(playerStateLiveData: MutableLiveData<PlayerState>)
 }
