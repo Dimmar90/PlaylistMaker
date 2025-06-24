@@ -2,16 +2,19 @@ package com.practicum.playlistmaker.search.ui
 
 import android.content.Context
 import android.content.res.Configuration
-import android.os.Handler
-import android.os.Looper
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.practicum.playlistmaker.R
 import com.practicum.playlistmaker.search.domain.api.SearchHistoryInteractor
 import com.practicum.playlistmaker.search.domain.api.SearchTracksInteractor
 import com.practicum.playlistmaker.search.domain.models.Track
 import com.practicum.playlistmaker.search.domain.models.TracksState
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 
 class SearchViewModel(
     context: Context,
@@ -20,7 +23,8 @@ class SearchViewModel(
 ) : ViewModel() {
 
     private val tracksList: MutableList<Track> = ArrayList()
-    private val handler = Handler(Looper.getMainLooper())
+
+    private var searchJob: Job? = null
     private var searchText: String? = null
 
     private val renderState = MutableLiveData<TracksState>()
@@ -40,14 +44,15 @@ class SearchViewModel(
         visibilityOfHistory()
     }
 
-    private val searchRunnable = Runnable {
-        getTracksList(searchText.toString())
-    }
-
     fun searchDebounce(editText: String) {
         this.searchText = editText
-        handler.removeCallbacks(searchRunnable)
-        handler.postDelayed(searchRunnable, SEARCH_DEBOUNCE_DELAY)
+        searchJob?.cancel()
+        searchJob = viewModelScope.launch {
+            if (isActive) {
+                getTracksList(searchText.toString())
+            }
+            delay(SEARCH_DEBOUNCE_DELAY)
+        }
     }
 
     private fun renderState(state: TracksState) {
@@ -55,19 +60,17 @@ class SearchViewModel(
     }
 
     private fun getTracksList(text: String) {
+
         if (text.isNotEmpty()) {
             renderState(TracksState.ShowLoading)
-            searchTracksInteractor.searchTracksList(
-                text,
-                object : SearchTracksInteractor.TracksConsumer {
-                    override fun consume(tracks: List<Track>?, isError: Boolean) {
-
-                        if (tracks != null) {
-                            tracksList.clear()
-                            tracksList.addAll(tracks)
-                        }
+            viewModelScope.launch {
+                searchTracksInteractor
+                    .searchTracksList(text)
+                    .collect { pair ->
+                        tracksList.clear()
+                        tracksList.addAll(pair.first)
                         when {
-                            isError -> {
+                            pair.second -> {
                                 if (isNightModeOn) {
                                     renderState(
                                         TracksState.ShowConnectionError(
@@ -114,7 +117,7 @@ class SearchViewModel(
                             }
                         }
                     }
-                })
+            }
         } else {
             loadSearchHistory()
             visibilityOfHistory()

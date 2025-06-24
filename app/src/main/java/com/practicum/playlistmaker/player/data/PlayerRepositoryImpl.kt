@@ -1,9 +1,8 @@
 package com.practicum.playlistmaker.player.data
 
+import android.annotation.SuppressLint
 import android.icu.text.SimpleDateFormat
 import android.media.MediaPlayer
-import android.os.Handler
-import android.os.Looper
 import android.widget.TextView
 import androidx.lifecycle.MutableLiveData
 import com.practicum.playlistmaker.player.domain.api.PlayerRepository
@@ -13,10 +12,7 @@ import java.util.Locale
 class PlayerRepositoryImpl : PlayerRepository {
 
     private var playerState = STATE_DEFAULT
-
     private var mediaPlayer = MediaPlayer()
-
-    private val handler = Handler(Looper.getMainLooper())
 
     override fun preparePlayer(url: String) {
         mediaPlayer.setDataSource(url)
@@ -39,7 +35,6 @@ class PlayerRepositoryImpl : PlayerRepository {
     override fun pausePlayer(runnable: Runnable) {
         mediaPlayer.pause()
         playerState = STATE_PAUSED
-        handler.removeCallbacks(runnable)
     }
 
     override fun resetPlayer(runnable: Runnable) {
@@ -61,19 +56,19 @@ class PlayerRepositoryImpl : PlayerRepository {
         return STATE_PREPARED
     }
 
-    override fun refreshPlayerTime(runnable: Runnable, playerTime: TextView) {
-        playerTime.text = SimpleDateFormat("mm:ss", Locale.getDefault()).format(mediaPlayer.currentPosition).toString()
-        handler.postDelayed(runnable, REFRESH_PLAYER_TIME_DELAY_MILLIS)
+    override fun refreshPlayerTime(playerTime: TextView) {
+        playerTime.text =
+            SimpleDateFormat("mm:ss", Locale.getDefault()).format(mediaPlayer.currentPosition)
+                .toString()
     }
 
+    @SuppressLint("SetTextI18n")
     override fun setOnCompletionListener(
-        runnable: Runnable,
-        playerTime: TextView,
-        playerStateLiveData: MutableLiveData<PlayerState>
+        playerStateLiveData: MutableLiveData<PlayerState>,
     ) {
         mediaPlayer.setOnCompletionListener {
-            pausePlayer(runnable)
             playerStateLiveData.value = PlayerState.StateTrackEnded
+
         }
     }
 
@@ -82,6 +77,5 @@ class PlayerRepositoryImpl : PlayerRepository {
         private const val STATE_PREPARED = 1
         private const val STATE_PLAYING = 2
         private const val STATE_PAUSED = 3
-        private const val REFRESH_PLAYER_TIME_DELAY_MILLIS = 1000L
     }
 }
