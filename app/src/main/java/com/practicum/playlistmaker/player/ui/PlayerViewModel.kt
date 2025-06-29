@@ -11,6 +11,7 @@ import androidx.lifecycle.viewModelScope
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.practicum.playlistmaker.R
+import com.practicum.playlistmaker.media.domain.db.FavoriteTracksInteractor
 import com.practicum.playlistmaker.player.domain.api.PlayerInteractor
 import com.practicum.playlistmaker.player.ui.PlayerState.StatePlaying
 import com.practicum.playlistmaker.search.domain.api.SearchHistoryInteractor
@@ -25,13 +26,17 @@ import java.util.Locale
 class PlayerViewModel(
     private var application: Application,
     private var playerInteractor: PlayerInteractor,
+    private var favoriteTracksInteractor: FavoriteTracksInteractor,
     historyInteractor: SearchHistoryInteractor,
 ) : ViewModel() {
 
-    private val track: Track = historyInteractor.getHistory().first()
+    private val track: Track = historyInteractor.getHistory()[0]
 
     private val playerState = MutableLiveData<PlayerState>()
     fun observePlayerState(): LiveData<PlayerState> = playerState
+
+    private val isTrackFavorite = MutableLiveData<Boolean>()
+    fun observeIsTrackFavorite(): LiveData<Boolean> = isTrackFavorite
 
     private var progressJob: Job? = null
 
@@ -42,6 +47,7 @@ class PlayerViewModel(
 
     init {
         preparePlayer()
+        isTrackFavorite()
     }
 
     private fun preparePlayer() {
@@ -127,6 +133,30 @@ class PlayerViewModel(
         trackReleaseDate.text = track.releaseDate.take(4)
         trackGenre.text = track.primaryGenreName
         trackCountry.text = track.country
+    }
+
+    fun addTrackToFavorites() {
+        viewModelScope.launch {
+            favoriteTracksInteractor.addTrackToFavorites(track)
+        }
+    }
+
+    fun deleteTrackFromFavorites() {
+        viewModelScope.launch {
+            favoriteTracksInteractor.deleteTrackFromFavorites(track)
+        }
+    }
+
+    fun isTrackFavorite() {
+        viewModelScope.launch {
+            favoriteTracksInteractor.isTrackFavorite(track.trackId).collect { isFavorite ->
+                if (isFavorite) {
+                    isTrackFavorite.postValue(true)
+                } else {
+                    isTrackFavorite.postValue(false)
+                }
+            }
+        }
     }
 
     companion object {

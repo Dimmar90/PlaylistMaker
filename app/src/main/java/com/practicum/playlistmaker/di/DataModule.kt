@@ -2,6 +2,8 @@ package com.practicum.playlistmaker.di
 
 import android.content.Context
 import android.content.SharedPreferences
+import androidx.room.Room
+import com.practicum.playlistmaker.media.data.db.AppDatabase
 import com.practicum.playlistmaker.search.data.network.ItunesApi
 import com.practicum.playlistmaker.search.data.network.NetworkClient
 import com.practicum.playlistmaker.search.data.network.RetrofitNetworkClient
@@ -26,4 +28,9 @@ val dataModule = module {
     }
 
     single<NetworkClient> { RetrofitNetworkClient(get(), get()) }
+
+    single {
+        Room.databaseBuilder(androidContext(), AppDatabase::class.java, "database.db")
+            .build()
+    }
 }

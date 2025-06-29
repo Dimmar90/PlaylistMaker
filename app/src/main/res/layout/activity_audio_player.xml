@@ -112,8 +112,8 @@
         app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.MyApp.Button.Circle" />
 
     <com.google.android.material.button.MaterialButton
-        android:id="@+id/add_like_button"
-        style="@style/PlayerButton"
+        android:id="@+id/add_to_favorites_button"
+        style="@style/LikeButton"
         android:contentDescription="@string/empty_description"
         app:icon="@drawable/add_like_button_icon"
         app:layout_constraintBottom_toBottomOf="@id/play_track_button"

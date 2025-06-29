@@ -16,12 +16,30 @@
         android:id="@+id/mediaFragment"
         android:name="com.practicum.playlistmaker.media.ui.MediaFragment"
         android:label="fragment_media"
-        tools:layout="@layout/fragment_media" />
+        tools:layout="@layout/fragment_media" >
+        <action
+            android:id="@+id/action_mediaFragment_to_searchFragment"
+            app:destination="@id/searchFragment" />
+        <action
+            android:id="@+id/action_mediaFragment_to_settingsFragment"
+            app:destination="@id/settingsFragment" />
+        <action
+            android:id="@+id/action_mediaFragment_to_activityAudioPlayer"
+            />
+        <action
+            android:id="@+id/action_mediaFragment_to_favoritesFragment"
+            app:destination="@id/favoritesFragment" />
+    </fragment>
+
 
     <fragment
         android:id="@+id/settingsFragment"
         android:name="com.practicum.playlistmaker.settings.ui.SettingsFragment"
         android:label="fragment_settings"
         tools:layout="@layout/fragment_settings" />
+    <fragment
+        android:id="@+id/favoritesFragment"
+        android:name="com.practicum.playlistmaker.media.ui.FavoritesFragment"
+        android:label="FavoritesFragment" />
 
 </navigation>

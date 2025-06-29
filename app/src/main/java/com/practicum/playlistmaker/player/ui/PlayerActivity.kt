@@ -8,6 +8,7 @@ import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.button.MaterialButton
 import com.practicum.playlistmaker.R
 import com.practicum.playlistmaker.databinding.ActivityAudioPlayerBinding
+import com.practicum.playlistmaker.media.ui.FavoritesFragment
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class PlayerActivity : AppCompatActivity() {
@@ -17,6 +18,7 @@ class PlayerActivity : AppCompatActivity() {
 
     private lateinit var playButton: MaterialButton
     private lateinit var playerTime: TextView
+    private lateinit var addToFavoritesButton: MaterialButton
 
     @SuppressLint("MissingInflatedId")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -28,6 +30,7 @@ class PlayerActivity : AppCompatActivity() {
 
         playButton = binding.playTrackButton
         playerTime = binding.playerTime
+        addToFavoritesButton = binding.addToFavoritesButton
         val returnButton = binding.playerReturnButton
 
         val trackCover = binding.trackArtwork
@@ -55,6 +58,24 @@ class PlayerActivity : AppCompatActivity() {
             putPlayerState(playerState)
         }
 
+        viewModel.observeIsTrackFavorite().observe(this) { isFavorite ->
+            if (isFavorite) {
+                pushLikeButton()
+            } else {
+                releaseLikeButton()
+            }
+
+            addToFavoritesButton.setOnClickListener {
+                if (isFavorite) {
+                    releaseLikeButton()
+                    viewModel.deleteTrackFromFavorites()
+                } else {
+                    pushLikeButton()
+                    viewModel.addTrackToFavorites()
+                }
+            }
+        }
+
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
                 viewModel.pausePlayer()
@@ -68,6 +89,18 @@ class PlayerActivity : AppCompatActivity() {
             viewModel.resetPlayer()
             finish()
         }
+    }
+
+    private fun pushLikeButton() {
+        addToFavoritesButton.setIconResource(R.drawable.add_like_button_icon_red)
+        addToFavoritesButton.setIconTintResource(R.color.add_like_button)
+        viewModel.isTrackFavorite()
+    }
+
+    private fun releaseLikeButton() {
+        addToFavoritesButton.setIconResource(R.drawable.add_like_button_icon)
+        addToFavoritesButton.setIconTintResource(R.color.white)
+        viewModel.isTrackFavorite()
     }
 
     private fun putPlayerState(state: PlayerState) {

@@ -15,4 +15,5 @@
     <color name="button_grey">#1A1B22</color>
     <color name="track_title">#AEAFB4</color>
     <color name="progress_bar">#3772E7</color>
+    <color name="add_like_button">#F56B6C</color>
 </resources>
