@@ -68,7 +68,6 @@ class PlayerRepositoryImpl : PlayerRepository {
     ) {
         mediaPlayer.setOnCompletionListener {
             playerStateLiveData.value = PlayerState.StateTrackEnded
-
         }
     }
 

@@ -8,7 +8,6 @@ import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.button.MaterialButton
 import com.practicum.playlistmaker.R
 import com.practicum.playlistmaker.databinding.ActivityAudioPlayerBinding
-import com.practicum.playlistmaker.media.ui.FavoritesFragment
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class PlayerActivity : AppCompatActivity() {
@@ -58,24 +57,6 @@ class PlayerActivity : AppCompatActivity() {
             putPlayerState(playerState)
         }
 
-        viewModel.observeIsTrackFavorite().observe(this) { isFavorite ->
-            if (isFavorite) {
-                pushLikeButton()
-            } else {
-                releaseLikeButton()
-            }
-
-            addToFavoritesButton.setOnClickListener {
-                if (isFavorite) {
-                    releaseLikeButton()
-                    viewModel.deleteTrackFromFavorites()
-                } else {
-                    pushLikeButton()
-                    viewModel.addTrackToFavorites()
-                }
-            }
-        }
-
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
                 viewModel.pausePlayer()
@@ -91,28 +72,45 @@ class PlayerActivity : AppCompatActivity() {
         }
     }
 
-    private fun pushLikeButton() {
-        addToFavoritesButton.setIconResource(R.drawable.add_like_button_icon_red)
-        addToFavoritesButton.setIconTintResource(R.color.add_like_button)
-        viewModel.isTrackFavorite()
-    }
-
-    private fun releaseLikeButton() {
-        addToFavoritesButton.setIconResource(R.drawable.add_like_button_icon)
-        addToFavoritesButton.setIconTintResource(R.color.white)
-        viewModel.isTrackFavorite()
-    }
-
     private fun putPlayerState(state: PlayerState) {
         when (state) {
-            is PlayerState.StateDefault -> defaultState()
+            is PlayerState.StateDefault -> defaultState(state.isTrackFavorite)
             is PlayerState.StatePlaying -> playState(state.playbackTime)
             is PlayerState.StatePaused -> pauseState()
             is PlayerState.StateTrackEnded -> trackIsEndedState()
         }
     }
 
-    private fun defaultState() {
+    private fun likeButtonFunctional(isTrackFavorite: Boolean) {
+        if (isTrackFavorite) {
+            pushLikeButton()
+        } else {
+            releaseLikeButton()
+        }
+
+        addToFavoritesButton.setOnClickListener {
+            if (isTrackFavorite) {
+                releaseLikeButton()
+                viewModel.deleteTrackFromFavorites()
+            } else {
+                pushLikeButton()
+                viewModel.addTrackToFavorites()
+            }
+        }
+    }
+
+    private fun pushLikeButton() {
+        addToFavoritesButton.setIconResource(R.drawable.add_like_button_icon_red)
+        addToFavoritesButton.setIconTintResource(R.color.add_like_button)
+    }
+
+    private fun releaseLikeButton() {
+        addToFavoritesButton.setIconResource(R.drawable.add_like_button_icon)
+        addToFavoritesButton.setIconTintResource(R.color.white)
+    }
+
+    private fun defaultState(trackFavorite: Boolean) {
+        likeButtonFunctional(trackFavorite)
         playButton.setOnClickListener {
             playButton.setIconResource(R.drawable.pause_button)
             viewModel.playbackControl()

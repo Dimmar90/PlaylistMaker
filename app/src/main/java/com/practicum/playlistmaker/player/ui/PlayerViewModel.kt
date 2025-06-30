@@ -35,9 +35,6 @@ class PlayerViewModel(
     private val playerState = MutableLiveData<PlayerState>()
     fun observePlayerState(): LiveData<PlayerState> = playerState
 
-    private val isTrackFavorite = MutableLiveData<Boolean>()
-    fun observeIsTrackFavorite(): LiveData<Boolean> = isTrackFavorite
-
     private var progressJob: Job? = null
 
     @SuppressLint("StaticFieldLeak")
@@ -46,14 +43,13 @@ class PlayerViewModel(
     private val runnable: Runnable = Runnable { refreshPlayerTime() }
 
     init {
-        preparePlayer()
         isTrackFavorite()
     }
 
-    private fun preparePlayer() {
+    private fun preparePlayer(isTrackFavorite: Boolean) {
         progressJob?.cancel()
         playerInteractor.preparePlayer(track.previewUrl)
-        playerState.postValue(PlayerState.StateDefault)
+        playerState.postValue(PlayerState.StateDefault(isTrackFavorite))
     }
 
     private fun startPlayer() {
@@ -139,22 +135,20 @@ class PlayerViewModel(
         viewModelScope.launch {
             favoriteTracksInteractor.addTrackToFavorites(track)
         }
+        playerState.postValue(PlayerState.StateDefault(true))
     }
 
     fun deleteTrackFromFavorites() {
         viewModelScope.launch {
             favoriteTracksInteractor.deleteTrackFromFavorites(track)
         }
+        playerState.postValue(PlayerState.StateDefault(false))
     }
 
-    fun isTrackFavorite() {
+    private fun isTrackFavorite() {
         viewModelScope.launch {
             favoriteTracksInteractor.isTrackFavorite(track.trackId).collect { isFavorite ->
-                if (isFavorite) {
-                    isTrackFavorite.postValue(true)
-                } else {
-                    isTrackFavorite.postValue(false)
-                }
+                preparePlayer(isFavorite)
             }
         }
     }
