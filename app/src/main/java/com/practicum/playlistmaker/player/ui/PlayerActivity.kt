@@ -17,6 +17,7 @@ class PlayerActivity : AppCompatActivity() {
 
     private lateinit var playButton: MaterialButton
     private lateinit var playerTime: TextView
+    private lateinit var addToFavoritesButton: MaterialButton
 
     @SuppressLint("MissingInflatedId")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -28,6 +29,7 @@ class PlayerActivity : AppCompatActivity() {
 
         playButton = binding.playTrackButton
         playerTime = binding.playerTime
+        addToFavoritesButton = binding.addToFavoritesButton
         val returnButton = binding.playerReturnButton
 
         val trackCover = binding.trackArtwork
@@ -72,14 +74,43 @@ class PlayerActivity : AppCompatActivity() {
 
     private fun putPlayerState(state: PlayerState) {
         when (state) {
-            is PlayerState.StateDefault -> defaultState()
+            is PlayerState.StateDefault -> defaultState(state.isTrackFavorite)
             is PlayerState.StatePlaying -> playState(state.playbackTime)
             is PlayerState.StatePaused -> pauseState()
             is PlayerState.StateTrackEnded -> trackIsEndedState()
         }
     }
 
-    private fun defaultState() {
+    private fun likeButtonFunctional(isTrackFavorite: Boolean) {
+        if (isTrackFavorite) {
+            pushLikeButton()
+        } else {
+            releaseLikeButton()
+        }
+
+        addToFavoritesButton.setOnClickListener {
+            if (isTrackFavorite) {
+                releaseLikeButton()
+                viewModel.deleteTrackFromFavorites()
+            } else {
+                pushLikeButton()
+                viewModel.addTrackToFavorites()
+            }
+        }
+    }
+
+    private fun pushLikeButton() {
+        addToFavoritesButton.setIconResource(R.drawable.add_like_button_icon_red)
+        addToFavoritesButton.setIconTintResource(R.color.add_like_button)
+    }
+
+    private fun releaseLikeButton() {
+        addToFavoritesButton.setIconResource(R.drawable.add_like_button_icon)
+        addToFavoritesButton.setIconTintResource(R.color.white)
+    }
+
+    private fun defaultState(trackFavorite: Boolean) {
+        likeButtonFunctional(trackFavorite)
         playButton.setOnClickListener {
             playButton.setIconResource(R.drawable.pause_button)
             viewModel.playbackControl()

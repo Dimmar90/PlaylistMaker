@@ -1,8 +1,9 @@
-import org.jetbrains.kotlin.ir.backend.js.compile
+import org.jetbrains.kotlin.storage.CacheResetOnProcessCanceled.enabled
 
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.kotlin.android)
+    id("com.google.devtools.ksp") version "2.1.21-2.0.1"
 }
 
 android {
@@ -39,6 +40,7 @@ android {
     buildFeatures {
         viewBinding = true
     }
+
 }
 
 dependencies {
@@ -62,8 +64,11 @@ dependencies {
     implementation("androidx.core:core-ktx:1.9.0")
     implementation ("io.insert-koin:koin-android:3.3.0")
     implementation ("androidx.fragment:fragment-ktx:1.5.5")
-    implementation ("androidx.navigation:navigation-fragment-ktx:2.5.3")
-    implementation ("androidx.navigation:navigation-ui-ktx:2.5.3")
-    implementation ("androidx.fragment:fragment-ktx:1.5.6")
+    implementation ("androidx.navigation:navigation-fragment-ktx:2.9.0")
+    implementation ("androidx.navigation:navigation-ui-ktx:2.9.0")
+    implementation ("androidx.fragment:fragment-ktx:1.8.8")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.3.9")
+    implementation("androidx.room:room-runtime:2.7.2")
+    ksp("androidx.room:room-compiler:2.7.2")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.9.1")
 }

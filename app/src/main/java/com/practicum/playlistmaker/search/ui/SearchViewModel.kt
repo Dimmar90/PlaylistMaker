@@ -2,6 +2,7 @@ package com.practicum.playlistmaker.search.ui
 
 import android.content.Context
 import android.content.res.Configuration
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -68,7 +69,11 @@ class SearchViewModel(
                     .searchTracksList(text)
                     .collect { pair ->
                         tracksList.clear()
-                        tracksList.addAll(pair.first)
+                        try {
+                            tracksList.addAll(pair.first)
+                        } catch (e: NullPointerException) {
+                            Log.d("Error", "NullPointerException")
+                        }
                         when {
                             pair.second -> {
                                 if (isNightModeOn) {
