@@ -41,6 +41,7 @@ class PlaylistsFragment : Fragment(), PlaylistAdapter.PlaylistListener {
         recyclerView = binding.recyclerView
 
         recyclerView.setHasFixedSize(true)
+
         recyclerView.layoutManager = GridLayoutManager(requireContext(), 2)
         addPlaylistButton.setOnClickListener {
             findNavController().navigate(R.id.action_mediaFragment_to_playlistCreatorFragment)
