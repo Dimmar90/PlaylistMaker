@@ -1,7 +1,9 @@
 package com.practicum.playlistmaker.search.domain.models
 
 import com.practicum.playlistmaker.search.data.dto.TrackDto
+import kotlinx.serialization.Serializable
 
+@Serializable
 data class Track(
     var trackId: String,
     var trackName: String,
@@ -13,7 +15,7 @@ data class Track(
     val primaryGenreName: String,
     val country: String,
     val previewUrl: String
-) {
+) : java.io.Serializable {
     fun toTrackDto(): TrackDto {
         return TrackDto(
             trackId = trackId,

@@ -16,4 +16,5 @@
     <color name="track_title">#AEAFB4</color>
     <color name="progress_bar">#3772E7</color>
     <color name="add_like_button">#F56B6C</color>
+    <color name="playlist_button_grey">#AEAFB4</color>
 </resources>

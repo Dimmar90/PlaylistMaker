@@ -1,5 +1,4 @@
-package com.practicum.playlistmaker.player.ui
-
+ package com.practicum.playlistmaker.player.ui
 import android.annotation.SuppressLint
 import android.os.Bundle
 import android.widget.TextView
@@ -14,12 +13,12 @@ class PlayerActivity : AppCompatActivity() {
 
     private val viewModel: PlayerViewModel by viewModel()
     private lateinit var binding: ActivityAudioPlayerBinding
-
     private lateinit var playButton: MaterialButton
     private lateinit var playerTime: TextView
     private lateinit var addToFavoritesButton: MaterialButton
+    private lateinit var addToPlaylistButton: MaterialButton
 
-    @SuppressLint("MissingInflatedId")
+    @SuppressLint("MissingInflatedId", "ResourceType")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_audio_player)
@@ -30,6 +29,7 @@ class PlayerActivity : AppCompatActivity() {
         playButton = binding.playTrackButton
         playerTime = binding.playerTime
         addToFavoritesButton = binding.addToFavoritesButton
+        addToPlaylistButton = binding.addToMediaButton
         val returnButton = binding.playerReturnButton
 
         val trackCover = binding.trackArtwork
@@ -55,6 +55,10 @@ class PlayerActivity : AppCompatActivity() {
 
         viewModel.observePlayerState().observe(this) { playerState ->
             putPlayerState(playerState)
+        }
+
+        addToPlaylistButton.setOnClickListener {
+            PlayerSheet().show(supportFragmentManager, "newPlayerSheet")
         }
 
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
