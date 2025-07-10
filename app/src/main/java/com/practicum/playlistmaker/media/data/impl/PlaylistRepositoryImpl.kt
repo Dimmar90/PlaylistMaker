@@ -21,6 +21,14 @@ class PlaylistRepositoryImpl(private val appDatabase: AppDatabase) : PlaylistRep
         emit(convertFromPlaylistEntity(playlists))
     }
 
+    override suspend fun addTracksIds(tracksIds: String, playlistId: Long?) {
+        appDatabase.playlistDao().addTracksIds(tracksIds, playlistId)
+    }
+
+    override suspend fun putTracksAmount(tracksAmount: Int, playlistId: Long?) {
+        appDatabase.playlistDao().putTracksAmount(tracksAmount, playlistId)
+    }
+
     private fun convertFromPlaylistEntity(playlists: List<PlaylistEntity>): List<Playlist> {
         return playlists.map { playlist -> playlistDbConverter.map(playlist) }
     }

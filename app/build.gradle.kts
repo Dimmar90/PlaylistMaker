@@ -72,4 +72,6 @@ dependencies {
     implementation("androidx.room:room-runtime:2.7.2")
     ksp("androidx.room:room-compiler:2.7.2")
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.9.1")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0")
+
 }

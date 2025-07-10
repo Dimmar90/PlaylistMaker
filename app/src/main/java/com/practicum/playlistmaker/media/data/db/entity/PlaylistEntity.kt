@@ -10,14 +10,14 @@ data class PlaylistEntity(
     var playlistName: String,
     var playlistDescription: String,
     var coverPath: String,
-    var tracksIds: String?,
+    var tracksIds: String,
     var tracksAmount: Int
 ) {
     constructor(
         playlistName: String,
         playlistDescription: String,
         coverPath: String,
-        tracksIds: String?,
+        tracksIds: String,
         tracksAmount: Int
     ) : this(
         null,

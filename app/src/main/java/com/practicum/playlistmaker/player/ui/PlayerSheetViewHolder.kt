@@ -15,7 +15,7 @@ open class PlayerSheetViewHolder(itemView: View) : RecyclerView.ViewHolder(itemV
 
     fun bind(playlist: Playlist, playlistListener: PlayerSheetAdapter.PlayerSheetListener) {
         playlistName.text = playlist.playlistName
-        playlistTracksAmount.text = playlist.tracksAmount.toString()
+        playlistTracksAmount.text = formatCount(playlist.tracksAmount)
 
         Glide.with(itemView)
             .load(playlist.coverPath)
@@ -24,5 +24,18 @@ open class PlayerSheetViewHolder(itemView: View) : RecyclerView.ViewHolder(itemV
         itemView.setOnClickListener {
             playlistListener.onPlaylistClick(playlist)
         }
+    }
+
+    private fun formatCount(tracksAmount: Int): String {
+        val lastTwoDigits = tracksAmount % 100
+        val lastDigit = tracksAmount % 10
+
+        val suffix = when {
+            lastTwoDigits in 11..14 -> "треков"
+            lastDigit == 1 -> "трек"
+            lastDigit in 2..4 -> "трека"
+            else -> "треков"
+        }
+        return "$tracksAmount $suffix"
     }
 }

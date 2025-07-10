@@ -43,11 +43,10 @@
 
             <TextView
                 android:id="@+id/playlist_name"
+                style="@style/PlaylistNameBottomSheet"
                 android:layout_width="match_parent"
                 android:layout_height="19dp"
-                android:text="Best songs 2021"
                 android:fontFamily="@font/ys_display_regular"
-                android:textColor="@color/black"
                 android:textSize="16sp" />
         </LinearLayout>
 
@@ -62,11 +61,11 @@
 
             <TextView
                 android:id="@+id/playlist_tracks_amount"
+                style="@style/PlaylistTrackAmountBottomSheet"
                 android:layout_width="match_parent"
                 android:layout_height="13dp"
-                android:gravity="center_vertical"
                 android:fontFamily="@font/ys_display_regular"
-                android:text="98 tracks"
+                android:gravity="center_vertical"
                 android:textSize="11sp" />
 
         </LinearLayout>

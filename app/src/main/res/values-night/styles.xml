@@ -224,7 +224,15 @@
         <item name="android:textColor">@color/white</item>
     </style>
 
-    <style name="EmptyPlaylistMessage">
+    <style name="AddToPlaylistMessage">
+        <item name="android:textColor">@color/white</item>
+    </style>
+
+    <style name="PlaylistNameBottomSheet">
+        <item name="android:textColor">@color/white</item>
+    </style>
+
+    <style name="PlaylistTrackAmountBottomSheet">
         <item name="android:textColor">@color/white</item>
     </style>
 

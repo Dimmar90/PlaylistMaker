@@ -26,7 +26,7 @@ class RootActivity : AppCompatActivity() {
         bottomNavigationView.setupWithNavController(navController)
 
         navController.addOnDestinationChangedListener { _, destination, _ ->
-            if (destination.id == R.id.playlistCreatorFragment) {
+            if (destination.id == R.id.playlistCreatorFragment || destination.id == R.id.playerActivity) {
                 bottomNavigationView.visibility = View.GONE
             } else {
                 bottomNavigationView.visibility = View.VISIBLE

@@ -26,6 +26,6 @@ class PlayerSheetAdapter(
     }
 
     interface PlayerSheetListener {
-        fun onPlaylistClick(playlist: Playlist)
+         fun onPlaylistClick(playlist: Playlist)
     }
 }

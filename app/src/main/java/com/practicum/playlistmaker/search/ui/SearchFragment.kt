@@ -20,7 +20,6 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.practicum.playlistmaker.R
 import com.practicum.playlistmaker.databinding.FragmentSearchBinding
-import com.practicum.playlistmaker.player.ui.PlayerActivity
 import com.practicum.playlistmaker.search.domain.models.Track
 import com.practicum.playlistmaker.search.domain.models.TracksState
 import org.koin.androidx.viewmodel.ext.android.viewModel
@@ -205,9 +204,10 @@ class SearchFragment : Fragment(), TracksAdapter.TrackListener {
     override fun onTrackClick(track: Track) {
         viewModel.addTrackToHistory(track)
         historyAdapter.notifyDataSetChanged()
-        val intent = Intent(requireActivity(), PlayerActivity::class.java)
-        putExtras(intent, track)
-        startActivity(intent)
+//        val intent = Intent(requireActivity(), PlayerActivity::class.java)
+//        putExtras(intent, track)
+//        startActivity(intent)
+        findNavController().navigate(R.id.action_searchFragment_to_playerActivity)
     }
 
     private fun putExtras(intent: Intent, track: Track) {

@@ -35,14 +35,13 @@
             app:behavior_peekHeight="266dp">
 
             <TextView
-                android:id="@+id/empty_playlist_message"
-                style="@style/EmptyPlaylistMessage"
+                android:id="@+id/add_to_playlist_message"
+                style="@style/AddToPlaylistMessage"
                 android:layout_width="match_parent"
                 android:layout_height="52dp"
                 android:fontFamily="@font/ys_display_medium"
                 android:gravity="center"
                 android:text="@string/add_to_playlist_message"
-                android:textColor="@color/black"
                 android:textSize="@dimen/empty_media_message_size" />
         </LinearLayout>
 

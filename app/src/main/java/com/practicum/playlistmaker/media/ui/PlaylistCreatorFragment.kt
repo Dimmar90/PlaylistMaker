@@ -23,7 +23,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.practicum.playlistmaker.R
 import com.practicum.playlistmaker.databinding.FragmentPlaylistCreatorBinding
 import com.practicum.playlistmaker.media.domain.models.Playlist
-import com.practicum.playlistmaker.search.domain.models.Track
+import org.json.JSONArray
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class PlaylistCreatorFragment : Fragment() {
@@ -99,19 +99,19 @@ class PlaylistCreatorFragment : Fragment() {
         playlistName: String,
         playlistDescription: String,
         coverPath: String,
-        playlistTracks: MutableList<Track>
+        playlistTracksIds: JSONArray
     ): Playlist {
-        return Playlist(playlistName, playlistDescription, coverPath, playlistTracks, 0)
+        return Playlist(null, playlistName, playlistDescription, coverPath, playlistTracksIds, 0)
     }
 
     private fun addPlaylist() {
-        val playlistTracks: MutableList<Track> = mutableListOf()
+        val playlistTracksIds = JSONArray()
         viewModel.addPlaylist(
             createPlaylist(
                 playlistName.text.toString(),
                 playlistDescription.text.toString(),
                 coverPath,
-                playlistTracks
+                playlistTracksIds
             )
         )
     }
@@ -136,9 +136,9 @@ class PlaylistCreatorFragment : Fragment() {
         MaterialAlertDialogBuilder(requireContext())
             .setTitle(R.string.dialog_title)
             .setMessage(R.string.dialog_message)
-            .setNeutralButton(R.string.dialog_neutral_button) { dialog, which ->
+            .setNeutralButton(R.string.dialog_neutral_button) { _, _ ->
             }
-            .setPositiveButton(R.string.dialog_positive_button) { dialog, which ->
+            .setPositiveButton(R.string.dialog_positive_button) { _, _ ->
                 findNavController().navigateUp()
             }
             .show()
