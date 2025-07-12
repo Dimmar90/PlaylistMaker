@@ -3,7 +3,6 @@ package com.practicum.playlistmaker.media.ui
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.res.Configuration
-import android.graphics.Color
 import android.view.View
 import android.widget.TextView
 import androidx.lifecycle.LiveData
@@ -11,6 +10,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.android.material.snackbar.Snackbar
+import com.practicum.playlistmaker.R
 import com.practicum.playlistmaker.media.domain.db.PlaylistInteractor
 import com.practicum.playlistmaker.media.domain.models.Playlist
 import com.practicum.playlistmaker.search.domain.api.SearchHistoryInteractor
@@ -23,12 +23,15 @@ class PlaylistsViewModel(
     historyInteractor: SearchHistoryInteractor
 ) : ViewModel() {
 
-    private val track: Track = historyInteractor.getHistory()[0]
+    private var track: Track? = null
     private val playlistsState = MutableLiveData<PlaylistState>()
     fun observePlaylistsState(): LiveData<PlaylistState> = playlistsState
 
     init {
         getPlaylists()
+        if (historyInteractor.getHistory().isNotEmpty()) {
+            track = historyInteractor.getHistory()[0]
+        }
     }
 
     private fun getPlaylistsState(playlists: List<Playlist>) {
@@ -54,7 +57,7 @@ class PlaylistsViewModel(
     }
 
     fun addTrackToPlaylist(playlist: Playlist) {
-        playlist.tracksIds.put(track.trackId)
+        playlist.tracksIds.put(track?.trackId)
         viewModelScope.launch {
             playlistInteractor.addTracksIds("${playlist.tracksIds}", playlist.id)
             playlistInteractor.putTracksAmount(playlist.tracksAmount + 1, playlist.id)
@@ -62,7 +65,7 @@ class PlaylistsViewModel(
     }
 
     fun isTrackAdded(playlist: Playlist): Boolean {
-        val isTrackAdded = checkIfJsonArrayContainsElement(playlist.tracksIds, track.trackId)
+        val isTrackAdded = checkIfJsonArrayContainsElement(playlist.tracksIds, track!!.trackId)
         return isTrackAdded
     }
 
@@ -76,7 +79,7 @@ class PlaylistsViewModel(
         return false
     }
 
-    @SuppressLint("ShowToast")
+    @SuppressLint("ShowToast", "ResourceAsColor")
     fun showSnackBar(view: View, text: String, context: Context) {
         val mSnackbar: Snackbar = Snackbar.make(view, text, Snackbar.LENGTH_LONG)
         val mView = mSnackbar.view
@@ -84,9 +87,9 @@ class PlaylistsViewModel(
             mView.findViewById<TextView>(com.google.android.material.R.id.snackbar_text)
         textView.textAlignment = View.TEXT_ALIGNMENT_CENTER
         if (checkNightModeOn(context)) {
-            mSnackbar.setBackgroundTint(Color.parseColor("#FFFFFF"))
+            mSnackbar.setBackgroundTint(R.color.white)
         } else {
-            mSnackbar.setBackgroundTint(Color.parseColor("#1A1B22"))
+            mSnackbar.setBackgroundTint(R.color.button_grey)
         }
         mSnackbar.show()
     }

@@ -291,4 +291,8 @@
         <item name="android:textColor">@color/text_grey</item>
     </style>
 
+    <style name="PlaylistCover">
+        <item name="srcCompat">@drawable/placeholder_icon</item>
+    </style>
+
 </resources>

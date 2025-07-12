@@ -14,7 +14,7 @@
             android:id="@+id/new_playlist_layout"
             android:layout_width="match_parent"
             android:layout_height="56dp"
-            android:paddingStart="24dp"
+            android:paddingStart="4dp"
             tools:ignore="RtlSymmetry">
 
             <ImageButton

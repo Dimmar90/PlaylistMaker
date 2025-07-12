@@ -1,8 +1,12 @@
 package com.practicum.playlistmaker.player.ui
 
+import android.content.Context
+import android.content.res.Configuration
+import android.graphics.drawable.Drawable
 import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.core.content.res.ResourcesCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.practicum.playlistmaker.R
@@ -12,18 +16,42 @@ open class PlayerSheetViewHolder(itemView: View) : RecyclerView.ViewHolder(itemV
     private val playlistCover: ImageView = itemView.findViewById(R.id.cover)
     private val playlistName: TextView = itemView.findViewById(R.id.playlist_name)
     private val playlistTracksAmount: TextView = itemView.findViewById(R.id.playlist_tracks_amount)
+    private var drawable: Drawable? = null
 
     fun bind(playlist: Playlist, playlistListener: PlayerSheetAdapter.PlayerSheetListener) {
         playlistName.text = playlist.playlistName
         playlistTracksAmount.text = formatCount(playlist.tracksAmount)
 
+        drawable = if (checkNightModeOn(itemView.context)) {
+            ResourcesCompat.getDrawable(
+                itemView.context.resources,
+                R.drawable.placeholder_icon_dark,
+                null
+            )
+        } else {
+            ResourcesCompat.getDrawable(
+                itemView.context.resources,
+                R.drawable.placeholder_icon,
+                null
+            )
+        }
+
         Glide.with(itemView)
             .load(playlist.coverPath)
-            .placeholder(R.drawable.placeholder_icon)
+            .placeholder(drawable)
             .into(playlistCover)
         itemView.setOnClickListener {
             playlistListener.onPlaylistClick(playlist)
         }
+    }
+
+    private fun checkNightModeOn(context: Context): Boolean {
+        var isNightModeOn = false
+        when (context.resources?.configuration?.uiMode?.and(Configuration.UI_MODE_NIGHT_MASK)) {
+            Configuration.UI_MODE_NIGHT_YES -> isNightModeOn = true
+            Configuration.UI_MODE_NIGHT_NO -> isNightModeOn = false
+        }
+        return isNightModeOn
     }
 
     private fun formatCount(tracksAmount: Int): String {
@@ -31,10 +59,10 @@ open class PlayerSheetViewHolder(itemView: View) : RecyclerView.ViewHolder(itemV
         val lastDigit = tracksAmount % 10
 
         val suffix = when {
-            lastTwoDigits in 11..14 -> "треков"
-            lastDigit == 1 -> "трек"
-            lastDigit in 2..4 -> "трека"
-            else -> "треков"
+            lastTwoDigits in 11..14 -> itemView.context.getString(R.string.tracks)
+            lastDigit == 1 -> itemView.context.getString(R.string.track)
+            lastDigit in 2..4 -> itemView.context.getString(R.string.tracks1)
+            else -> itemView.context.getString(R.string.tracks)
         }
         return "$tracksAmount $suffix"
     }

@@ -17,7 +17,8 @@ import com.practicum.playlistmaker.media.ui.PlaylistState
 import com.practicum.playlistmaker.media.ui.PlaylistsViewModel
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
-class PlayerSheetDialogFragment : BottomSheetDialogFragment(), PlayerSheetAdapter.PlayerSheetListener {
+class PlayerSheetDialogFragment : BottomSheetDialogFragment(),
+    PlayerSheetAdapter.PlayerSheetListener {
 
     private val viewModel: PlaylistsViewModel by viewModel()
     private lateinit var binding: FragmentPlaylistBottomSheetBinding
@@ -55,7 +56,7 @@ class PlayerSheetDialogFragment : BottomSheetDialogFragment(), PlayerSheetAdapte
         if (viewModel.isTrackAdded(playlist)) {
             Toast.makeText(
                 requireContext(),
-                "Трек уже добавлен в плейлист ${playlist.playlistName}",
+                "${getText(R.string.track_already_added)} ${playlist.playlistName}",
                 Toast.LENGTH_LONG
             ).show()
         } else {
@@ -63,7 +64,7 @@ class PlayerSheetDialogFragment : BottomSheetDialogFragment(), PlayerSheetAdapte
             dismiss()
             Toast.makeText(
                 requireContext(),
-                "Добавлено в плейлист ${playlist.playlistName}",
+                "${getText(R.string.added_to_playlist)} ${playlist.playlistName}",
                 Toast.LENGTH_LONG
             ).show()
         }

@@ -1,7 +1,7 @@
 package com.practicum.playlistmaker.media.ui
 
 import android.annotation.SuppressLint
-import android.graphics.Color
+import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -25,6 +25,8 @@ import com.practicum.playlistmaker.databinding.FragmentPlaylistCreatorBinding
 import com.practicum.playlistmaker.media.domain.models.Playlist
 import org.json.JSONArray
 import org.koin.androidx.viewmodel.ext.android.viewModel
+import java.io.File
+import java.io.IOException
 
 class PlaylistCreatorFragment : Fragment() {
 
@@ -40,7 +42,7 @@ class PlaylistCreatorFragment : Fragment() {
     private val pickCover =
         registerForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
             uri?.let {
-                coverPath = it.toString()
+                coverPath = Uri.fromFile(File(saveCoverToStorage(it))).toString()
                 Glide.with(this)
                     .load(uri)
                     .transform(
@@ -50,6 +52,24 @@ class PlaylistCreatorFragment : Fragment() {
                     .into(binding.playlistCover)
             }
         }
+
+    private fun saveCoverToStorage(uri: Uri): String? {
+        return try {
+            val inputStream = requireContext().contentResolver.openInputStream(uri) ?: return null
+            val fileName = "playlist_${System.currentTimeMillis()}.jpg"
+            val file = File(requireContext().filesDir, fileName)
+            file.outputStream().use { output ->
+                inputStream.use { input ->
+                    input.copyTo(output)
+                }
+            }
+            file.absolutePath
+
+        } catch (e: IOException) {
+            e.printStackTrace()
+            null
+        }
+    }
 
     @SuppressLint("ResourceAsColor")
     override fun onCreateView(
@@ -75,7 +95,7 @@ class PlaylistCreatorFragment : Fragment() {
 
         playlistName.addTextChangedListener(
             onTextChanged = { s: CharSequence?, _, _, _ ->
-                if (s?.isEmpty() == false) {
+                if (s?.isNotBlank() == true) {
                     activateCreateButton(view)
                 } else {
                     deactivateCreateButton()
@@ -116,20 +136,23 @@ class PlaylistCreatorFragment : Fragment() {
         )
     }
 
+    @SuppressLint("ResourceAsColor")
     private fun activateCreateButton(view: View) {
-        addPlaylistButton.setBackgroundColor(Color.parseColor("#3772E7"))
+        addPlaylistButton.setBackgroundColor(R.color.addPlaylistButton_color)
         addPlaylistButton.setOnClickListener {
             addPlaylist()
 
             findNavController().popBackStack()
 
-            val text = "Плейлист ${playlistName.text} создан"
+            val text =
+                "${getText(R.string.playlist)} ${playlistName.text} ${getText(R.string.create)}"
             viewModel.showSnackBar(view, text, requireContext())
         }
     }
 
+    @SuppressLint("ResourceAsColor")
     private fun deactivateCreateButton() {
-        addPlaylistButton.setBackgroundColor(Color.parseColor("#AEAFB4"))
+        addPlaylistButton.setBackgroundColor(R.color.addPlaylistButton_diactivate_color)
     }
 
     private fun setDialogBuilder() {

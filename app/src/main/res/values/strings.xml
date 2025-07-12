@@ -42,4 +42,11 @@
     <string name="playlist_name_hint">Название*</string>
     <string name="playlist_description_hint">Описание</string>
     <string name="create_playlist_button">Создать</string>
+    <string name="playlist">Плейлист</string>
+    <string name="create">создан</string>
+    <string name="track">трек</string>
+    <string name="tracks">треков</string>
+    <string name="tracks1">трека</string>
+    <string name="track_already_added">Трек уже добавлен в плейлист</string>
+    <string name="added_to_playlist">Добавлено в плейлист</string>
 </resources>
