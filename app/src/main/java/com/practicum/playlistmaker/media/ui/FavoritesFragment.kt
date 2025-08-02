@@ -11,7 +11,7 @@ import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.practicum.playlistmaker.databinding.FragmentFavoritesBinding
-import com.practicum.playlistmaker.player.ui.PlayerActivity
+import com.practicum.playlistmaker.player.ui.PlayerFragment
 import com.practicum.playlistmaker.search.domain.models.Track
 import com.practicum.playlistmaker.search.ui.TracksAdapter
 import org.koin.androidx.viewmodel.ext.android.viewModel
@@ -64,7 +64,7 @@ class FavoritesFragment : Fragment(), TracksAdapter.TrackListener {
 
     override fun onTrackClick(track: Track) {
         viewModel.addTrackToHistory(track)
-        val intent = Intent(requireActivity(), PlayerActivity::class.java)
+        val intent = Intent(requireActivity(), PlayerFragment::class.java)
         putExtras(intent, track)
         startActivity(intent)
     }

@@ -1,8 +1,10 @@
 package com.practicum.playlistmaker.search.ui
 
 import android.annotation.SuppressLint
-import android.content.Intent
 import android.os.Bundle
+import android.os.SystemClock
+import android.text.Editable
+import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -15,10 +17,12 @@ import android.widget.TextView
 import androidx.core.view.isVisible
 import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.textfield.TextInputEditText
+import com.practicum.playlistmaker.R
 import com.practicum.playlistmaker.databinding.FragmentSearchBinding
-import com.practicum.playlistmaker.player.ui.PlayerActivity
 import com.practicum.playlistmaker.search.domain.models.Track
 import com.practicum.playlistmaker.search.domain.models.TracksState
 import org.koin.androidx.viewmodel.ext.android.viewModel
@@ -84,10 +88,10 @@ class SearchFragment : Fragment(), TracksAdapter.TrackListener {
 
                 if (editText.hasFocus() && s?.isEmpty() == true) {
                     viewModel.visibilityOfHistory()
-
                 }
             },
-            afterTextChanged = { _ -> }
+            afterTextChanged = { _ ->
+            }
         )
 
         clearHistoryButton.setOnClickListener {
@@ -100,6 +104,22 @@ class SearchFragment : Fragment(), TracksAdapter.TrackListener {
         }
 
         return binding.root
+    }
+
+    fun TextInputEditText.textChangedDebounce(debounceTime: Long = 300L, action: (text: String) -> Unit) {
+        this.addTextChangedListener(object : TextWatcher {
+
+            private var lastTextChangedTime: Long = 0
+
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+            override fun afterTextChanged(s: Editable?) {
+                if (SystemClock.elapsedRealtime() - lastTextChangedTime < debounceTime) return
+                else action(s.toString())
+                lastTextChangedTime = SystemClock.elapsedRealtime()
+            }
+
+        })
     }
 
     private fun render(state: TracksState) {
@@ -203,21 +223,6 @@ class SearchFragment : Fragment(), TracksAdapter.TrackListener {
     override fun onTrackClick(track: Track) {
         viewModel.addTrackToHistory(track)
         historyAdapter.notifyDataSetChanged()
-        val intent = Intent(requireActivity(), PlayerActivity::class.java)
-        putExtras(intent, track)
-        startActivity(intent)
-    }
-
-    private fun putExtras(intent: Intent, track: Track) {
-        intent.putExtra("trackId", track.trackId)
-        intent.putExtra("trackName", track.trackName)
-        intent.putExtra("artistName", track.artistName)
-        intent.putExtra("trackTimeMillis", track.trackTimeMillis)
-        intent.putExtra("artworkUrl100", track.artworkUrl100)
-        intent.putExtra("collectionName", track.collectionName)
-        intent.putExtra("releaseDate", track.releaseDate)
-        intent.putExtra("primaryGenreName", track.primaryGenreName)
-        intent.putExtra("country", track.country)
-        intent.putExtra("previewUrl", track.previewUrl)
+        findNavController().navigate(R.id.action_searchFragment_to_playerActivity)
     }
 }

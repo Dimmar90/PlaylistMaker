@@ -21,5 +21,6 @@ class App : Application() {
 
         val settingsInteractor: SettingsInteractor = getKoin().get()
         settingsInteractor.setTheme()
+
     }
 }

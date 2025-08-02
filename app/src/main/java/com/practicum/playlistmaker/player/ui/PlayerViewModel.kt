@@ -2,6 +2,7 @@ package com.practicum.playlistmaker.player.ui
 
 import android.annotation.SuppressLint
 import android.app.Application
+import android.util.Log
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.lifecycle.LiveData
