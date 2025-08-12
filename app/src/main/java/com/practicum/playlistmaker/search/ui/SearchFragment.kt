@@ -225,4 +225,8 @@ class SearchFragment : Fragment(), TracksAdapter.TrackListener {
         historyAdapter.notifyDataSetChanged()
         findNavController().navigate(R.id.action_searchFragment_to_playerActivity)
     }
+
+    override fun onItemLongClick(track: Track): Boolean {
+        TODO("Not yet implemented")
+    }
 }

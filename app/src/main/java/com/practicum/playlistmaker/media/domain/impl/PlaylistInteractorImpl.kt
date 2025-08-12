@@ -4,6 +4,7 @@ import com.practicum.playlistmaker.media.domain.db.PlaylistInteractor
 import com.practicum.playlistmaker.media.domain.db.PlaylistRepository
 import com.practicum.playlistmaker.media.domain.models.Playlist
 import kotlinx.coroutines.flow.Flow
+import org.json.JSONArray
 
 class PlaylistInteractorImpl(private val playlistRepository: PlaylistRepository) :
     PlaylistInteractor {
@@ -12,15 +13,36 @@ class PlaylistInteractorImpl(private val playlistRepository: PlaylistRepository)
         playlistRepository.addPlaylist(playlist)
     }
 
+    override suspend fun deletePlaylist(playlistId: Int) {
+        playlistRepository.deletePlaylist(playlistId)
+    }
+
+    override suspend fun updatePlaylist(
+        playlistId: Int,
+        playlistName: String,
+        playlistDescription: String,
+        coverPath: String
+    ) {
+        playlistRepository.updatePlaylist(playlistId, playlistName, playlistDescription, coverPath)
+    }
+
     override suspend fun getPlaylists(): Flow<List<Playlist>> {
         return playlistRepository.getPlaylists()
     }
 
-    override suspend fun addTracksIds(tracksIds: String, playlistId: Long?) {
+    override suspend fun getTracksIds(playlistId: Int): Flow<JSONArray> {
+        return playlistRepository.getTracksIds(playlistId)
+    }
+
+    override suspend fun getPlaylistById(playlistId: Int): Flow<Playlist> {
+        return playlistRepository.getPlaylistById(playlistId)
+    }
+
+    override suspend fun addTracksIds(tracksIds: String, playlistId: Int?) {
         playlistRepository.addTracksIds(tracksIds, playlistId)
     }
 
-    override suspend fun putTracksAmount(tracksAmount: Int, playlistId: Long?) {
+    override suspend fun putTracksAmount(tracksAmount: Int, playlistId: Int?) {
         playlistRepository.putTracksAmount(tracksAmount, playlistId)
     }
 }

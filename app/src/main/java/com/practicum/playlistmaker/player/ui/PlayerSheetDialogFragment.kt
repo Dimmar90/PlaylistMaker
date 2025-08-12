@@ -71,17 +71,13 @@ class PlayerSheetDialogFragment : BottomSheetDialogFragment(),
     }
 
     private fun putPlaylistsState(playlistState: PlaylistState) {
-        when (playlistState) {
-            is PlaylistState.StateContent -> contentState(playlistState.playlists)
-            is PlaylistState.StateEmpty -> emptyState()
+        if (playlistState is PlaylistState.StateContent) {
+            contentState(playlistState.playlists)
         }
     }
 
     private fun contentState(playlists: List<Playlist>) {
         val playlistAdapter = PlayerSheetAdapter(playlists, this)
         recyclerView.adapter = playlistAdapter
-    }
-
-    private fun emptyState() {
     }
 }

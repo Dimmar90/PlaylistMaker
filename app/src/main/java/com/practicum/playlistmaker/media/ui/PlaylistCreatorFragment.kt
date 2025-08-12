@@ -10,9 +10,11 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.ImageView
+import android.widget.TextView
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
 import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
@@ -37,6 +39,7 @@ class PlaylistCreatorFragment : Fragment() {
     private lateinit var playlistName: EditText
     private lateinit var playlistDescription: EditText
     private lateinit var playlistCover: ImageView
+    private lateinit var title: TextView
     private var coverPath: String = ""
 
     private val pickCover =
@@ -82,6 +85,7 @@ class PlaylistCreatorFragment : Fragment() {
         playlistName = binding.playlistNameText
         playlistDescription = binding.playlistDescriptionText
         playlistCover = binding.playlistCover
+        title = binding.title
 
         return binding.root
     }
@@ -89,14 +93,31 @@ class PlaylistCreatorFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        var isTrackEdit: Boolean
+
+        try {
+            val playlistId: Int = arguments?.getString("Argument")!!.toInt()
+            viewModel.getPlaylistById(playlistId)
+            isTrackEdit = true
+
+            viewModel.observePlaylistsState().observe(viewLifecycleOwner) { playlistState ->
+                putPlaylistsState(playlistState, view)
+            }
+
+        } catch (e: NullPointerException) {
+            isTrackEdit = false
+        }
+
         playlistCover.setOnClickListener {
             pickCover.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
         }
 
         playlistName.addTextChangedListener(
             onTextChanged = { s: CharSequence?, _, _, _ ->
-                if (s?.isNotBlank() == true) {
+                if (s?.isNotBlank() == true && !isTrackEdit) {
                     activateCreateButton(view)
+                } else if (s?.isNotBlank() == true && isTrackEdit) {
+                    activateEditButton()
                 } else {
                     deactivateCreateButton()
                 }
@@ -104,7 +125,11 @@ class PlaylistCreatorFragment : Fragment() {
         )
 
         returnButton.setOnClickListener {
-            returnFunctional()
+            if (!isTrackEdit) {
+                returnFunctional()
+            } else {
+                findNavController().navigateUp()
+            }
         }
 
         val callback = object : OnBackPressedCallback(true) {
@@ -113,6 +138,37 @@ class PlaylistCreatorFragment : Fragment() {
             }
         }
         requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, callback)
+    }
+
+    private fun putPlaylistsState(playlistState: PlaylistState, view: View) {
+        if (playlistState is PlaylistState.StatePlaylist) {
+            playlistState(playlistState.playlist, view)
+        }
+    }
+
+    private fun playlistState(playlist: Playlist, view: View) {
+        title.setText(R.string.edit)
+        coverPath = playlist.coverPath
+        Glide.with(view)
+            .load(playlist.coverPath)
+            .placeholder(R.drawable.placeholder_icon)
+            .into(playlistCover)
+        playlistName.setText(playlist.playlistName)
+        playlistDescription.setText(playlist.playlistDescription)
+        addPlaylistButton.setText(R.string.save)
+
+        addPlaylistButton.setOnClickListener {
+            playlist.coverPath = coverPath
+            playlist.playlistName = playlistName.text.toString()
+            playlist.playlistDescription = playlistDescription.text.toString()
+            viewModel.updatePlaylist(
+                playlist.id!!,
+                playlist.coverPath,
+                playlist.playlistName,
+                playlist.playlistDescription
+            )
+            findNavController().popBackStack()
+        }
     }
 
     private fun createPlaylist(
@@ -138,7 +194,15 @@ class PlaylistCreatorFragment : Fragment() {
 
     @SuppressLint("ResourceAsColor")
     private fun activateCreateButton(view: View) {
-        addPlaylistButton.setBackgroundColor(R.color.addPlaylistButton_color)
+        addPlaylistButton.setBackgroundColor(
+            ContextCompat.getColor(
+                requireContext(),
+                R.color.addPlaylistButton_color
+            )
+        )
+
+        addPlaylistButton.isEnabled = true
+
         addPlaylistButton.setOnClickListener {
             addPlaylist()
 
@@ -150,9 +214,26 @@ class PlaylistCreatorFragment : Fragment() {
         }
     }
 
+    private fun activateEditButton() {
+        addPlaylistButton.setBackgroundColor(
+            ContextCompat.getColor(
+                requireContext(),
+                R.color.addPlaylistButton_color
+            )
+        )
+
+        addPlaylistButton.isEnabled = true
+    }
+
     @SuppressLint("ResourceAsColor")
     private fun deactivateCreateButton() {
-        addPlaylistButton.setBackgroundColor(R.color.addPlaylistButton_diactivate_color)
+        addPlaylistButton.setBackgroundColor(
+            ContextCompat.getColor(
+                requireContext(),
+                R.color.addPlaylistButton_diactivate_color
+            )
+        )
+        addPlaylistButton.isEnabled = false
     }
 
     private fun setDialogBuilder() {

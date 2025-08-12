@@ -18,7 +18,10 @@ open class TracksViewHolder(itemView: View) :
     private val trackTimeView: TextView = itemView.findViewById(R.id.trackTime)
     private val artworkView: ImageView = itemView.findViewById(R.id.cover)
 
-    fun bind(model: Track, trackListener: TracksAdapter.TrackListener) {
+    fun bind(
+        model: Track,
+        trackListener: TracksAdapter.TrackListener,
+    ) {
         trackNameView.text = model.trackName
         artistNameView.text = model.artistName
         trackTimeView.text =
@@ -31,6 +34,9 @@ open class TracksViewHolder(itemView: View) :
             .into(artworkView)
         itemView.setOnClickListener {
             trackListener.onTrackClick(model)
+        }
+        itemView.setOnLongClickListener {
+            trackListener.onItemLongClick(model)
         }
     }
 }

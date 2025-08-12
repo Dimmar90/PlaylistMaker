@@ -49,4 +49,12 @@
     <string name="tracks1">трека</string>
     <string name="track_already_added">Трек уже добавлен в плейлист</string>
     <string name="added_to_playlist">Добавлено в плейлист</string>
+    <string name="minutes">минут</string>
+    <string name="share_empty_playlist_message">В этом плейлисте нет списка треков, которым можно поделиться</string>
+    <string name="delete_playlist_message">Хотите удалить плейлист</string>
+    <string name="no">нет</string>
+    <string name="yes">да</string>
+    <string name="edit">Редактировать</string>
+    <string name="save">Сохранить</string>
+    <string name="delete_track_message">Хотите удалить трек?</string>
 </resources>
