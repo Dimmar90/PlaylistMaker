@@ -1,10 +1,12 @@
 package com.practicum.playlistmaker.media.data.impl
 
 import com.practicum.playlistmaker.media.data.converters.PlaylistDbConverter
+import com.practicum.playlistmaker.media.data.converters.TrackDbConverter
 import com.practicum.playlistmaker.media.data.db.AppDatabase
 import com.practicum.playlistmaker.media.data.db.entity.PlaylistEntity
 import com.practicum.playlistmaker.media.domain.db.PlaylistRepository
 import com.practicum.playlistmaker.media.domain.models.Playlist
+import com.practicum.playlistmaker.search.domain.models.Track
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import org.json.JSONArray
@@ -12,6 +14,7 @@ import org.json.JSONArray
 class PlaylistRepositoryImpl(private val appDatabase: AppDatabase) : PlaylistRepository {
 
     private val playlistDbConverter = PlaylistDbConverter()
+    private val trackDbConverter = TrackDbConverter()
 
     override suspend fun addPlaylist(playlist: Playlist) {
         appDatabase.playlistDao().addPlaylist(playlistDbConverter.map(playlist))
@@ -34,6 +37,18 @@ class PlaylistRepositoryImpl(private val appDatabase: AppDatabase) : PlaylistRep
     override suspend fun getPlaylists(): Flow<List<Playlist>> = flow {
         val playlists = appDatabase.playlistDao().getPlaylists()
         emit(convertFromPlaylistEntity(playlists))
+    }
+
+    override suspend fun addTrackToMedia(track: Track) {
+        appDatabase.mediaTracksDao().addTrackToMedia(trackDbConverter.map(track))
+    }
+
+    override suspend fun getMediaTrackById(trackId: String): Flow<Track> = flow {
+        emit(trackDbConverter.map(appDatabase.mediaTracksDao().getMediaTrackById(trackId)))
+    }
+
+    override suspend fun deleteTrackFromMedia(trackId: String) {
+        appDatabase.mediaTracksDao().deleteTrackFromMedia(trackId)
     }
 
     override suspend fun getTracksIds(playlistId: Int): Flow<JSONArray> = flow {

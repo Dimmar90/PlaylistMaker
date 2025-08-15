@@ -227,6 +227,6 @@ class SearchFragment : Fragment(), TracksAdapter.TrackListener {
     }
 
     override fun onItemLongClick(track: Track): Boolean {
-        TODO("Not yet implemented")
+        return true
     }
 }

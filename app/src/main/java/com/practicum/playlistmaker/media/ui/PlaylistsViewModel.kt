@@ -3,7 +3,6 @@ package com.practicum.playlistmaker.media.ui
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.res.Configuration
-import android.util.Log
 import android.view.View
 import android.widget.TextView
 import androidx.lifecycle.LiveData
@@ -15,21 +14,17 @@ import com.practicum.playlistmaker.R
 import com.practicum.playlistmaker.media.domain.db.PlaylistInteractor
 import com.practicum.playlistmaker.media.domain.models.Playlist
 import com.practicum.playlistmaker.search.domain.api.SearchHistoryInteractor
-import com.practicum.playlistmaker.search.domain.api.SearchTracksInteractor
 import com.practicum.playlistmaker.search.domain.models.Track
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import org.json.JSONArray
 
 class PlaylistsViewModel(
     private var playlistInteractor: PlaylistInteractor,
-    private var searchTracksInteractor: SearchTracksInteractor,
     historyInteractor: SearchHistoryInteractor
 ) : ViewModel() {
 
     private var track: Track? = null
     private val tracksList: MutableList<Track> = ArrayList()
-    private var searchJob: Job? = null
     private val playlistsState = MutableLiveData<PlaylistState>()
     fun observePlaylistsState(): LiveData<PlaylistState> = playlistsState
 
@@ -49,8 +44,8 @@ class PlaylistsViewModel(
 
     fun getPlaylists() {
         viewModelScope.launch {
-            playlistInteractor.getPlaylists().collect { playlist ->
-                getPlaylistsState(playlist)
+            playlistInteractor.getPlaylists().collect { playlists ->
+                getPlaylistsState(playlists)
             }
         }
     }
@@ -112,24 +107,45 @@ class PlaylistsViewModel(
         return isTrackAdded
     }
 
-    fun deleteTrack(track: Track, playlistId: Int) {
+    fun addTrackToMedia() {
         viewModelScope.launch {
-            playlistInteractor.getPlaylistById(playlistId).collect { playlist ->
-
-                if (playlist.tracksIds.length() == 1) {
-                    playlist.tracksIds.remove(0)
+            try {
+                playlistInteractor.getMediaTrackById(track!!.trackId).collect { _ ->
                 }
+            } catch (e: IllegalStateException) {
+                playlistInteractor.addTrackToMedia(track!!)
+            }
+        }
+    }
 
-                for (i in 0 until playlist.tracksIds.length()) {
-                    val element = playlist.tracksIds[i]
-                    if (element == track.trackId) {
-                        playlist.tracksIds.remove(i)
+    fun deleteTrackFromPlaylist(track: Track, playlistId: Int) {
+        viewModelScope.launch {
+            playlistInteractor.getTracksIds(playlistId).collect { tracksIds ->
+                var id = 0
+                for (i in 0 until tracksIds.length()) {
+                    if (track.trackId == tracksIds[i].toString()) {
+                        id = i
                     }
                 }
+                tracksIds.remove(id)
+                playlistInteractor.addTracksIds(tracksIds.toString(), playlistId)
+                playlistInteractor.putTracksAmount(tracksIds.length(), playlistId)
+                tracksList.remove(track)
+                playlistsState.postValue(PlaylistState.StateTracksList(tracksList))
+            }
 
-                playlistInteractor.addTracksIds("${playlist.tracksIds}", playlist.id)
-                playlistInteractor.putTracksAmount(playlist.tracksIds.length(), playlist.id)
-                playlistsState.postValue(PlaylistState.StateTracksIds(playlist.tracksIds))
+            var trackAddedToPlaylist = 0
+            playlistInteractor.getPlaylists().collect { playlists ->
+                playlists.forEach { playlist ->
+                    for (i in 0 until playlist.tracksIds.length()) {
+                        if (track.trackId == playlist.tracksIds[i].toString()) {
+                            trackAddedToPlaylist += 1
+                        }
+                    }
+                }
+                if (trackAddedToPlaylist == 0) {
+                    playlistInteractor.deleteTrackFromMedia(track.trackId)
+                }
             }
         }
     }
@@ -144,22 +160,18 @@ class PlaylistsViewModel(
         return false
     }
 
-    fun searchDebounce(trackId: String) {
-        searchJob?.cancel()
-        searchJob = viewModelScope.launch {
-            getTracksList(trackId)
-        }
-    }
-
-    private fun getTracksList(trackId: String) {
+    fun getTracksList(playlistId: Int) {
         tracksList.clear()
         viewModelScope.launch {
-            searchTracksInteractor.searchTracksList(trackId).collect { pair ->
-                try {
-                    tracksList.addAll(pair.first)
+            playlistInteractor.getTracksIds(playlistId).collect { tracksIds ->
+                for (i in tracksIds.length() - 1 downTo 0) {
+                    val element = tracksIds[i]
+
+                    playlistInteractor.getMediaTrackById(element.toString()).collect { track ->
+                        tracksList.add(track)
+                    }
+
                     playlistsState.postValue(PlaylistState.StateTracksList(tracksList))
-                } catch (e: NullPointerException) {
-                    Log.d("Error", "NullPointerException")
                 }
             }
         }

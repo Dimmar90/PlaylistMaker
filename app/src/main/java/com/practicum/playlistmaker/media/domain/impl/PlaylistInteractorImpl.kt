@@ -3,6 +3,7 @@ package com.practicum.playlistmaker.media.domain.impl
 import com.practicum.playlistmaker.media.domain.db.PlaylistInteractor
 import com.practicum.playlistmaker.media.domain.db.PlaylistRepository
 import com.practicum.playlistmaker.media.domain.models.Playlist
+import com.practicum.playlistmaker.search.domain.models.Track
 import kotlinx.coroutines.flow.Flow
 import org.json.JSONArray
 
@@ -28,6 +29,18 @@ class PlaylistInteractorImpl(private val playlistRepository: PlaylistRepository)
 
     override suspend fun getPlaylists(): Flow<List<Playlist>> {
         return playlistRepository.getPlaylists()
+    }
+
+    override suspend fun addTrackToMedia(track: Track) {
+        playlistRepository.addTrackToMedia(track)
+    }
+
+    override suspend fun getMediaTrackById(trackId: String): Flow<Track> {
+        return playlistRepository.getMediaTrackById(trackId)
+    }
+
+    override suspend fun deleteTrackFromMedia(trackId: String) {
+        playlistRepository.deleteTrackFromMedia(trackId)
     }
 
     override suspend fun getTracksIds(playlistId: Int): Flow<JSONArray> {

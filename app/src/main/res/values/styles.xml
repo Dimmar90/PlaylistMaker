@@ -149,6 +149,14 @@
         <item name="srcCompat">@drawable/exit_button_vector</item>
     </style>
 
+    <style name="PlaylistReturnButtonStyle">
+        <item name="android:layout_width">48dp</item>
+        <item name="android:layout_height">48dp</item>
+        <item name="android:layout_marginStart">8dp</item>
+        <item name="android:layout_marginTop">4dp</item>
+        <item name="android:background">@null</item>
+    </style>
+
     <style name="PlayMusicButton">
         <item name="android:layout_width">84dp</item>
         <item name="android:layout_height">84dp</item>
@@ -292,11 +300,11 @@
     </style>
 
     <style name="PlaylistCover">
-        <item name="srcCompat">@drawable/placeholder_icon</item>
+        <item name="srcCompat">@drawable/placeholder_playlist</item>
     </style>
 
     <style name="BottomSheetStyle">
-        <item name="background">@color/white</item>
+        <item name="backgroundTint">@color/white</item>
     </style>
 
     <style name="BottomSheetTextStyle">

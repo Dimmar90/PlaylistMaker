@@ -60,6 +60,7 @@ class PlayerSheetDialogFragment : BottomSheetDialogFragment(),
                 Toast.LENGTH_LONG
             ).show()
         } else {
+            viewModel.addTrackToMedia()
             viewModel.addTrackToPlaylist(playlist)
             dismiss()
             Toast.makeText(

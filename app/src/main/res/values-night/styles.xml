@@ -241,7 +241,7 @@
     </style>
 
     <style name="BottomSheetStyle">
-        <item name="background">@color/black</item>
+        <item name="backgroundTint">@color/black</item>
     </style>
 
     <style name="BottomSheetTextStyle">
