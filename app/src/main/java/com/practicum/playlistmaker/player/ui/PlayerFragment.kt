@@ -71,7 +71,7 @@ class PlayerFragment : Fragment() {
         returnButton.setOnClickListener {
             viewModel.pausePlayer()
             viewModel.resetPlayer()
-            findNavController().navigate(R.id.action_playerActivity_to_searchFragment)
+            findNavController().navigateUp()
         }
 
         val callback = object : OnBackPressedCallback(true) {

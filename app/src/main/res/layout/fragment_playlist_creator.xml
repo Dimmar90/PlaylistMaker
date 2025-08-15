@@ -3,6 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
+    style="@style/BackGroundStyle"
     android:layout_height="match_parent"
     tools:context="com.practicum.playlistmaker.media.ui.PlaylistCreatorFragment">
 
@@ -26,6 +27,7 @@
                 android:importantForAccessibility="no" />
 
             <TextView
+                android:id="@+id/title"
                 style="@style/SearchTextStyle"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
@@ -107,7 +109,7 @@
                 style="@style/CreatePlaylistButton"
                 android:layout_width="match_parent"
                 android:layout_height="56dp"
-                android:backgroundTint="@color/playlist_button_grey"
+                android:backgroundTint="@color/addPlaylistButton_diactivate_color"
                 android:fontFamily="@font/ys_display_medium"
                 android:text="@string/create_playlist_button"
                 android:textAllCaps="false"

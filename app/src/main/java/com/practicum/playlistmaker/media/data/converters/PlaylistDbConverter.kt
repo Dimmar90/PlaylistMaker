@@ -27,7 +27,7 @@ class PlaylistDbConverter {
         )
     }
 
-    private fun toJsonArray(tracksIdsEntity: String): JSONArray {
+    fun toJsonArray(tracksIdsEntity: String): JSONArray {
         val trackIdsArray = JSONArray()
 
         val tracksIds = Json.decodeFromString<List<String>>(tracksIdsEntity)

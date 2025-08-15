@@ -2,7 +2,6 @@ package com.practicum.playlistmaker.search.ui
 
 import android.content.Context
 import android.content.res.Configuration
-import android.os.SystemClock
 import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -158,6 +157,6 @@ class SearchViewModel(
     }
 
     companion object {
-        private const val SEARCH_DEBOUNCE_DELAY = 1000L
+        const val SEARCH_DEBOUNCE_DELAY = 1000L
     }
 }

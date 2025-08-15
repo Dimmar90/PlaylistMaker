@@ -25,5 +25,6 @@ class TracksAdapter(
 
     interface TrackListener {
         fun onTrackClick(track: Track)
+        fun onItemLongClick(track: Track): Boolean
     }
 }
