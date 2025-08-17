@@ -146,7 +146,7 @@ class PlaylistFragment : Fragment(), TracksAdapter.TrackListener {
         findNavController().navigateUp()
     }
 
-    @SuppressLint("SetTextI18n")
+    @SuppressLint("SetTextI18n", "NotifyDataSetChanged")
     private fun tracksListState(tracks: List<Track>) {
         var totalTime = 0
         tracksList.clear()
@@ -161,7 +161,9 @@ class PlaylistFragment : Fragment(), TracksAdapter.TrackListener {
         playlistTotalTime.text = "$totalPlaylistTime ${getText(R.string.minutes)}"
         playlistAmount.text = formatCount(tracks.size)
 
-        val tracksAdapter = TracksAdapter(tracksList, this)
+        val tracksAdapter = TracksAdapter(tracksList, this).also {
+            it.notifyDataSetChanged()
+        }
         recyclerView.adapter = tracksAdapter
     }
 

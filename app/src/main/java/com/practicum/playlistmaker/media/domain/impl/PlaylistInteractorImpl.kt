@@ -43,10 +43,6 @@ class PlaylistInteractorImpl(private val playlistRepository: PlaylistRepository)
         playlistRepository.deleteTrackFromMedia(trackId, playlistId)
     }
 
-    override suspend fun addTrackToPlaylist(playlist: Playlist, trackId: String) {
-        playlistRepository.addTrackToPlaylist(playlist, trackId)
-    }
-
     override suspend fun getTracksIds(playlistId: Int): Flow<JSONArray> {
         return playlistRepository.getTracksIds(playlistId)
     }
@@ -61,5 +57,9 @@ class PlaylistInteractorImpl(private val playlistRepository: PlaylistRepository)
 
     override suspend fun putTracksAmount(tracksAmount: Int, playlistId: Int?) {
         playlistRepository.putTracksAmount(tracksAmount, playlistId)
+    }
+
+    override suspend fun getTracksList(playlistId: Int): Flow<MutableList<Track>> {
+        return playlistRepository.getTracksList(playlistId)
     }
 }

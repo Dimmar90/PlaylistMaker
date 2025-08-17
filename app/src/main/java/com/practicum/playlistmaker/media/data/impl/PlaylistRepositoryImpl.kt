@@ -46,7 +46,12 @@ class PlaylistRepositoryImpl(private val appDatabase: AppDatabase) : PlaylistRep
     }
 
     override suspend fun addTrackToMedia(track: Track) {
-        appDatabase.mediaTracksDao().addTrackToMedia(trackDbConverter.map(track))
+        try {
+            getMediaTrackById(track!!.trackId).collect { _ ->
+            }
+        } catch (e: IllegalStateException) {
+            appDatabase.mediaTracksDao().addTrackToMedia(trackDbConverter.map(track))
+        }
     }
 
     override suspend fun getMediaTrackById(trackId: String): Flow<Track> = flow {
@@ -92,20 +97,25 @@ class PlaylistRepositoryImpl(private val appDatabase: AppDatabase) : PlaylistRep
         emit(playlistDbConverter.map(playlist))
     }
 
-    override suspend fun addTrackToPlaylist(playlist: Playlist, trackId: String) {
-        getTracksIds(playlist.id!!).collect { tracksIds ->
-            tracksIds.put(trackId)
-            addTracksIds(tracksIds.toString(), playlist.id)
-            putTracksAmount(tracksIds.length(), playlist.id)
-        }
-    }
-
     override suspend fun addTracksIds(tracksIds: String, playlistId: Int?) {
         appDatabase.playlistDao().addTracksIds(tracksIds, playlistId)
     }
 
     override suspend fun putTracksAmount(tracksAmount: Int, playlistId: Int?) {
         appDatabase.playlistDao().putTracksAmount(tracksAmount, playlistId)
+    }
+
+    override suspend fun getTracksList(playlistId: Int): Flow<MutableList<Track>> = flow {
+        val tracksList: MutableList<Track> = ArrayList()
+        getTracksIds(playlistId).collect { tracksIds ->
+            for (i in tracksIds.length() - 1 downTo 0) {
+                val element = tracksIds[i]
+                getMediaTrackById(element.toString()).collect { track ->
+                    tracksList.add(track)
+                }
+            }
+        }
+        emit(tracksList)
     }
 
     private fun convertFromPlaylistEntity(playlists: List<PlaylistEntity>): List<Playlist> {

@@ -21,7 +21,7 @@ interface PlaylistRepository {
     suspend fun deleteTrackFromMedia(trackId: String, playlistId: Int)
     suspend fun getTracksIds(playlistId: Int): Flow<JSONArray>
     suspend fun getPlaylistById(playlistId: Int): Flow<Playlist>
-    suspend fun addTrackToPlaylist(playlist: Playlist, trackId: String)
     suspend fun addTracksIds(tracksIds: String, playlistId: Int?)
     suspend fun putTracksAmount(tracksAmount: Int, playlistId: Int?)
+    suspend fun getTracksList(playlistId: Int): Flow<MutableList<Track>>
 }
