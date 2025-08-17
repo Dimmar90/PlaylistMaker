@@ -24,6 +24,7 @@ class PlayerSheetDialogFragment : BottomSheetDialogFragment(),
     private lateinit var binding: FragmentPlaylistBottomSheetBinding
     private lateinit var addPlaylistButton: MaterialButton
     private lateinit var recyclerView: RecyclerView
+    private lateinit var playlist: Playlist
 
     override fun getTheme() = R.style.AppBottomSheetDialogTheme
 
@@ -38,6 +39,7 @@ class PlayerSheetDialogFragment : BottomSheetDialogFragment(),
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
         addPlaylistButton = binding.addNewPlaylistButton
         recyclerView = binding.recyclerView
         recyclerView.layoutManager = LinearLayoutManager(requireContext())
@@ -52,8 +54,23 @@ class PlayerSheetDialogFragment : BottomSheetDialogFragment(),
         }
     }
 
-    override fun onPlaylistClick(playlist: Playlist) {
-        if (viewModel.isTrackAdded(playlist)) {
+    private fun putPlaylistsState(playlistState: PlaylistState) {
+        if (playlistState is PlaylistState.StateContent) {
+            contentState(playlistState.playlists)
+        }
+
+        if (playlistState is PlaylistState.StateIsTrackAdded) {
+            isTrackAddedState(playlistState.isTrackAdded)
+        }
+    }
+
+    private fun contentState(playlists: List<Playlist>) {
+        val playlistAdapter = PlayerSheetAdapter(playlists, this)
+        recyclerView.adapter = playlistAdapter
+    }
+
+    private fun isTrackAddedState(isTrackAdded: Boolean) {
+        if (isTrackAdded) {
             Toast.makeText(
                 requireContext(),
                 "${getText(R.string.track_already_added)} ${playlist.playlistName}",
@@ -71,14 +88,8 @@ class PlayerSheetDialogFragment : BottomSheetDialogFragment(),
         }
     }
 
-    private fun putPlaylistsState(playlistState: PlaylistState) {
-        if (playlistState is PlaylistState.StateContent) {
-            contentState(playlistState.playlists)
-        }
-    }
-
-    private fun contentState(playlists: List<Playlist>) {
-        val playlistAdapter = PlayerSheetAdapter(playlists, this)
-        recyclerView.adapter = playlistAdapter
+    override fun onPlaylistClick(playlist: Playlist) {
+        this.playlist = playlist
+        viewModel.isTrackAdded(playlist)
     }
 }

@@ -237,7 +237,7 @@
     </style>
 
     <style name="PlaylistCover">
-        <item name="srcCompat">@drawable/placeholder_icon_dark</item>
+        <item name="srcCompat">@drawable/placeholder</item>
     </style>
 
     <style name="BottomSheetStyle">

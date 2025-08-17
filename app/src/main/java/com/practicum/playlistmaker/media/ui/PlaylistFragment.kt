@@ -1,7 +1,10 @@
 package com.practicum.playlistmaker.media.ui
 
 import android.annotation.SuppressLint
+import android.content.Context
 import android.content.Intent
+import android.content.res.Configuration
+import android.graphics.drawable.Drawable
 import android.icu.text.SimpleDateFormat
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -12,6 +15,7 @@ import android.widget.ImageView
 import android.widget.RelativeLayout
 import android.widget.TextView
 import android.widget.Toast
+import androidx.core.content.res.ResourcesCompat
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -57,7 +61,8 @@ class PlaylistFragment : Fragment(), TracksAdapter.TrackListener {
 
     private val tracksList = ArrayList<Track>()
     private lateinit var recyclerView: RecyclerView
-    private var playlistId = 0
+    private var playlistId: Int? = 0
+    private var drawable: Drawable? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -95,11 +100,25 @@ class PlaylistFragment : Fragment(), TracksAdapter.TrackListener {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        drawable = if (checkNightModeOn(view.context)) {
+            ResourcesCompat.getDrawable(
+                view.context.resources,
+                R.drawable.placeholder_dark,
+                null
+            )
+        } else {
+            ResourcesCompat.getDrawable(
+                view.context.resources,
+                R.drawable.placeholder,
+                null
+            )
+        }
+
         bottomMenuSheetBehavior.isHideable = true
         bottomMenuSheetBehavior.state = BottomSheetBehavior.STATE_HIDDEN
 
         playlistId = arguments?.getString("Argument")!!.toInt()
-        viewModel.getPlaylistById(playlistId)
+        viewModel.getPlaylistById(playlistId!!)
 
         viewModel.observePlaylistsState().observe(viewLifecycleOwner) { playlistState ->
             putPlaylistsState(playlistState, view)
@@ -117,6 +136,14 @@ class PlaylistFragment : Fragment(), TracksAdapter.TrackListener {
         if (playlistState is PlaylistState.StatePlaylist) {
             playlistState(playlistState.playlist, view)
         }
+
+        if (playlistState is PlaylistState.StateDeletePlaylist) {
+            deletePlaylistState()
+        }
+    }
+
+    private fun deletePlaylistState() {
+        findNavController().navigateUp()
     }
 
     @SuppressLint("SetTextI18n")
@@ -146,12 +173,12 @@ class PlaylistFragment : Fragment(), TracksAdapter.TrackListener {
 
         Glide.with(view)
             .load(playlist.coverPath)
-            .placeholder(R.drawable.placeholder_playlist)
+            .placeholder(R.drawable.placeholder)
             .into(playlistCover)
 
         Glide.with(view)
             .load(playlist.coverPath)
-            .placeholder(R.drawable.placeholder_playlist)
+            .placeholder(drawable)
             .into(playlistDialogCover)
 
         playlistName.text = playlist.playlistName
@@ -275,7 +302,7 @@ class PlaylistFragment : Fragment(), TracksAdapter.TrackListener {
             .setNegativeButton(R.string.no) { _, _ ->
             }
             .setPositiveButton(R.string.yes) { _, _ ->
-                viewModel.deleteTrackFromPlaylist(track, playlistId)
+                viewModel.deleteTrackFromPlaylist(track, playlistId!!)
             }
             .show()
     }
@@ -288,7 +315,6 @@ class PlaylistFragment : Fragment(), TracksAdapter.TrackListener {
             }
             .setPositiveButton(R.string.yes) { _, _ ->
                 viewModel.deletePlaylist(playlist.id!!)
-                findNavController().navigateUp()
             }
             .show()
     }
@@ -305,5 +331,14 @@ class PlaylistFragment : Fragment(), TracksAdapter.TrackListener {
             else -> getString(R.string.tracks)
         }
         return "$tracksAmount $suffix"
+    }
+
+    private fun checkNightModeOn(context: Context): Boolean {
+        var isNightModeOn = false
+        when (context.resources?.configuration?.uiMode?.and(Configuration.UI_MODE_NIGHT_MASK)) {
+            Configuration.UI_MODE_NIGHT_YES -> isNightModeOn = true
+            Configuration.UI_MODE_NIGHT_NO -> isNightModeOn = false
+        }
+        return isNightModeOn
     }
 }

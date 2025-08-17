@@ -75,6 +75,7 @@ class PlaylistsViewModel(
     fun deletePlaylist(playlistId: Int) {
         viewModelScope.launch {
             playlistInteractor.deletePlaylist(playlistId)
+            playlistsState.postValue(PlaylistState.StateDeletePlaylist)
         }
     }
 
@@ -102,9 +103,9 @@ class PlaylistsViewModel(
         }
     }
 
-    fun isTrackAdded(playlist: Playlist): Boolean {
+    fun isTrackAdded(playlist: Playlist) {
         val isTrackAdded = checkIfJsonArrayContainsElement(playlist.tracksIds, track!!.trackId)
-        return isTrackAdded
+        playlistsState.postValue(PlaylistState.StateIsTrackAdded(isTrackAdded))
     }
 
     fun addTrackToMedia() {
@@ -120,33 +121,9 @@ class PlaylistsViewModel(
 
     fun deleteTrackFromPlaylist(track: Track, playlistId: Int) {
         viewModelScope.launch {
-            playlistInteractor.getTracksIds(playlistId).collect { tracksIds ->
-                var id = 0
-                for (i in 0 until tracksIds.length()) {
-                    if (track.trackId == tracksIds[i].toString()) {
-                        id = i
-                    }
-                }
-                tracksIds.remove(id)
-                playlistInteractor.addTracksIds(tracksIds.toString(), playlistId)
-                playlistInteractor.putTracksAmount(tracksIds.length(), playlistId)
-                tracksList.remove(track)
-                playlistsState.postValue(PlaylistState.StateTracksList(tracksList))
-            }
-
-            var trackAddedToPlaylist = 0
-            playlistInteractor.getPlaylists().collect { playlists ->
-                playlists.forEach { playlist ->
-                    for (i in 0 until playlist.tracksIds.length()) {
-                        if (track.trackId == playlist.tracksIds[i].toString()) {
-                            trackAddedToPlaylist += 1
-                        }
-                    }
-                }
-                if (trackAddedToPlaylist == 0) {
-                    playlistInteractor.deleteTrackFromMedia(track.trackId)
-                }
-            }
+            playlistInteractor.deleteTrackFromMedia(track.trackId, playlistId)
+            tracksList.remove(track)
+            playlistsState.postValue(PlaylistState.StateTracksList(tracksList))
         }
     }
 

@@ -26,13 +26,13 @@ open class PlaylistViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView
         drawable = if (checkNightModeOn(itemView.context)) {
             ResourcesCompat.getDrawable(
                 itemView.context.resources,
-                R.drawable.placeholder_playlist,
+                R.drawable.placeholder_dark,
                 null
             )
         } else {
             ResourcesCompat.getDrawable(
                 itemView.context.resources,
-                R.drawable.placeholder_playlist,
+                R.drawable.placeholder,
                 null
             )
         }

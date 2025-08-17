@@ -42,7 +42,7 @@
                             android:layout_height="match_parent"
                             android:contentDescription="@string/empty_description"
                             android:scaleType="centerCrop"
-                            tools:srcCompat="@drawable/placeholder_playlist" />
+                            tools:srcCompat="@drawable/placeholder" />
                     </androidx.cardview.widget.CardView>
 
                 </androidx.constraintlayout.widget.ConstraintLayout>
@@ -264,7 +264,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:scaleType="centerCrop"
-                        tools:srcCompat="@drawable/placeholder_icon" />
+                        tools:srcCompat="@drawable/placeholder" />
 
                 </androidx.cardview.widget.CardView>
             </LinearLayout>

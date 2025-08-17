@@ -151,7 +151,7 @@ class PlaylistCreatorFragment : Fragment() {
         coverPath = playlist.coverPath
         Glide.with(view)
             .load(playlist.coverPath)
-            .placeholder(R.drawable.placeholder_playlist)
+            .placeholder(R.drawable.placeholder)
             .into(playlistCover)
         playlistName.setText(playlist.playlistName)
         playlistDescription.setText(playlist.playlistDescription)

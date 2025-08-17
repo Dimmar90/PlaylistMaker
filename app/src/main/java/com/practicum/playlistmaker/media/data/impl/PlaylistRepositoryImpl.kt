@@ -21,6 +21,12 @@ class PlaylistRepositoryImpl(private val appDatabase: AppDatabase) : PlaylistRep
     }
 
     override suspend fun deletePlaylist(playlistId: Int) {
+        getTracksIds(playlistId).collect { tracksIds ->
+            for (i in 0 until tracksIds.length()) {
+                deleteTrackFromMedia(tracksIds[i].toString(), playlistId)
+            }
+        }
+
         appDatabase.playlistDao().deletePlaylist(playlistId)
     }
 
@@ -47,8 +53,33 @@ class PlaylistRepositoryImpl(private val appDatabase: AppDatabase) : PlaylistRep
         emit(trackDbConverter.map(appDatabase.mediaTracksDao().getMediaTrackById(trackId)))
     }
 
-    override suspend fun deleteTrackFromMedia(trackId: String) {
-        appDatabase.mediaTracksDao().deleteTrackFromMedia(trackId)
+    override suspend fun deleteTrackFromMedia(trackId: String, playlistId: Int) {
+        getTracksIds(playlistId).collect { tracksIds ->
+            var id = 0
+            for (i in 0 until tracksIds.length()) {
+                if (trackId == tracksIds[i].toString()) {
+                    id = i
+                }
+            }
+
+            tracksIds.remove(id)
+            addTracksIds(tracksIds.toString(), playlistId)
+            putTracksAmount(tracksIds.length(), playlistId)
+        }
+
+        var trackAddedToPlaylist = 0
+        getPlaylists().collect { playlists ->
+            playlists.forEach { playlist ->
+                for (i in 0 until playlist.tracksIds.length()) {
+                    if (trackId == playlist.tracksIds[i].toString()) {
+                        trackAddedToPlaylist += 1
+                    }
+                }
+            }
+            if (trackAddedToPlaylist == 0) {
+                appDatabase.mediaTracksDao().deleteTrackFromMedia(trackId)
+            }
+        }
     }
 
     override suspend fun getTracksIds(playlistId: Int): Flow<JSONArray> = flow {
@@ -59,6 +90,14 @@ class PlaylistRepositoryImpl(private val appDatabase: AppDatabase) : PlaylistRep
     override suspend fun getPlaylistById(playlistId: Int): Flow<Playlist> = flow {
         val playlist = appDatabase.playlistDao().getPlaylistById(playlistId)
         emit(playlistDbConverter.map(playlist))
+    }
+
+    override suspend fun addTrackToPlaylist(playlist: Playlist, trackId: String) {
+        getTracksIds(playlist.id!!).collect { tracksIds ->
+            tracksIds.put(trackId)
+            addTracksIds(tracksIds.toString(), playlist.id)
+            putTracksAmount(tracksIds.length(), playlist.id)
+        }
     }
 
     override suspend fun addTracksIds(tracksIds: String, playlistId: Int?) {

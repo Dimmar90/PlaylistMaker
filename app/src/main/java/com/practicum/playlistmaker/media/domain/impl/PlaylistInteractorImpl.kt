@@ -39,8 +39,12 @@ class PlaylistInteractorImpl(private val playlistRepository: PlaylistRepository)
         return playlistRepository.getMediaTrackById(trackId)
     }
 
-    override suspend fun deleteTrackFromMedia(trackId: String) {
-        playlistRepository.deleteTrackFromMedia(trackId)
+    override suspend fun deleteTrackFromMedia(trackId: String, playlistId: Int) {
+        playlistRepository.deleteTrackFromMedia(trackId, playlistId)
+    }
+
+    override suspend fun addTrackToPlaylist(playlist: Playlist, trackId: String) {
+        playlistRepository.addTrackToPlaylist(playlist, trackId)
     }
 
     override suspend fun getTracksIds(playlistId: Int): Flow<JSONArray> {
