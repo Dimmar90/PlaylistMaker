@@ -15,8 +15,10 @@ class PlayerRepositoryImpl : PlayerRepository {
     private var mediaPlayer = MediaPlayer()
 
     override fun preparePlayer(url: String) {
+        mediaPlayer.stop()
+        mediaPlayer.reset()
         mediaPlayer.setDataSource(url)
-        mediaPlayer.prepareAsync()
+        mediaPlayer.prepare()
         mediaPlayer.setOnPreparedListener {
             STATE_PREPARED
         }

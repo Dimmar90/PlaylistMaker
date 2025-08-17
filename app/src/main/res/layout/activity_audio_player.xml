@@ -41,7 +41,7 @@
             android:layout_height="match_parent"
             android:contentDescription="@string/empty_description"
             android:scaleType="centerCrop"
-            tools:srcCompat="@drawable/placeholder_icon" />
+            tools:srcCompat="@drawable/placeholder_dark" />
     </androidx.cardview.widget.CardView>
 
     <LinearLayout

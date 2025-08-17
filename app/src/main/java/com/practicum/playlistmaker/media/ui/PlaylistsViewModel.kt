@@ -24,11 +24,11 @@ class PlaylistsViewModel(
 ) : ViewModel() {
 
     private var track: Track? = null
+    private var tracksList: MutableList<Track> = ArrayList()
     private val playlistsState = MutableLiveData<PlaylistState>()
     fun observePlaylistsState(): LiveData<PlaylistState> = playlistsState
 
     init {
-        getPlaylists()
         if (historyInteractor.getHistory().isNotEmpty()) {
             track = historyInteractor.getHistory()[0]
         }
@@ -44,8 +44,16 @@ class PlaylistsViewModel(
 
     fun getPlaylists() {
         viewModelScope.launch {
-            playlistInteractor.getPlaylists().collect { playlist ->
-                getPlaylistsState(playlist)
+            playlistInteractor.getPlaylists().collect { playlists ->
+                getPlaylistsState(playlists)
+            }
+        }
+    }
+
+    fun getPlaylistById(playlistId: Int) {
+        viewModelScope.launch {
+            playlistInteractor.getPlaylistById(playlistId).collect { playlist ->
+                playlistsState.postValue(PlaylistState.StatePlaylist(playlist))
             }
         }
     }
@@ -56,27 +64,71 @@ class PlaylistsViewModel(
         }
     }
 
+    fun deletePlaylist(playlistId: Int) {
+        viewModelScope.launch {
+            playlistInteractor.deletePlaylist(playlistId)
+            playlistsState.postValue(PlaylistState.StateDeletePlaylist)
+        }
+    }
+
+    fun updatePlaylist(
+        playlistId: Int,
+        coverPath: String,
+        playlistName: String,
+        playlistDescription: String
+    ) {
+        viewModelScope.launch {
+            playlistInteractor.updatePlaylist(
+                playlistId,
+                playlistName,
+                playlistDescription,
+                coverPath
+            )
+        }
+    }
+
     fun addTrackToPlaylist(playlist: Playlist) {
         playlist.tracksIds.put(track?.trackId)
         viewModelScope.launch {
             playlistInteractor.addTracksIds("${playlist.tracksIds}", playlist.id)
-            playlistInteractor.putTracksAmount(playlist.tracksAmount + 1, playlist.id)
+            playlistInteractor.putTracksAmount(playlist.tracksIds.length(), playlist.id)
         }
     }
 
-    fun isTrackAdded(playlist: Playlist): Boolean {
-        val isTrackAdded = checkIfJsonArrayContainsElement(playlist.tracksIds, track!!.trackId)
-        return isTrackAdded
+    fun addTrackToMedia() {
+        viewModelScope.launch {
+            playlistInteractor.addTrackToMedia(track!!)
+        }
     }
 
-    private fun checkIfJsonArrayContainsElement(jsonArray: JSONArray, targetValue: Any): Boolean {
-        for (i in 0 until jsonArray.length()) {
-            val element = jsonArray.get(i)
-            if (element == targetValue) {
-                return true
+    fun deleteTrackFromPlaylist(track: Track, playlistId: Int) {
+        viewModelScope.launch {
+            playlistInteractor.deleteTrackFromMedia(track.trackId, playlistId)
+            tracksList.remove(track)
+            playlistsState.postValue(PlaylistState.StateTracksList(tracksList))
+        }
+    }
+
+    fun isTrackAdded(playlist: Playlist) {
+        val isTrackAdded = checkIfJsonArrayContainsElement(playlist.tracksIds, track!!.trackId)
+        playlistsState.postValue(PlaylistState.StateIsTrackAdded(isTrackAdded))
+    }
+
+    fun getTracksIds(playlistId: Int) {
+        viewModelScope.launch {
+            playlistInteractor.getTracksIds(playlistId).collect { tracksIds ->
+                playlistsState.postValue(PlaylistState.StateTracksIds(tracksIds))
             }
         }
-        return false
+    }
+
+    fun getTracksList(playlistId: Int) {
+        viewModelScope.launch {
+            playlistInteractor.getTracksList(playlistId).collect { tracks ->
+                tracksList = tracks
+                playlistsState.postValue(PlaylistState.StateTracksList(tracksList))
+            }
+        }
     }
 
     @SuppressLint("ShowToast", "ResourceAsColor")
@@ -92,6 +144,16 @@ class PlaylistsViewModel(
             mSnackbar.setBackgroundTint(R.color.button_grey)
         }
         mSnackbar.show()
+    }
+
+    private fun checkIfJsonArrayContainsElement(jsonArray: JSONArray, targetValue: Any): Boolean {
+        for (i in 0 until jsonArray.length()) {
+            val element = jsonArray.get(i)
+            if (element == targetValue) {
+                return true
+            }
+        }
+        return false
     }
 
     private fun checkNightModeOn(context: Context): Boolean {

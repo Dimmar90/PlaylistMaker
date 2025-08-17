@@ -69,6 +69,10 @@ class FavoritesFragment : Fragment(), TracksAdapter.TrackListener {
         startActivity(intent)
     }
 
+    override fun onItemLongClick(track: Track): Boolean {
+        TODO("Not yet implemented")
+    }
+
     private fun putExtras(intent: Intent, track: Track) {
         intent.putExtra("trackId", track.trackId)
         intent.putExtra("trackName", track.trackName)

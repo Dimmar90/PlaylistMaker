@@ -56,24 +56,31 @@ class PlaylistsFragment : Fragment(), PlaylistAdapter.PlaylistListener {
     }
 
     private fun putPlaylistsState(playlistState: PlaylistState) {
-        when (playlistState) {
-            is PlaylistState.StateEmpty -> emptyState()
-            is PlaylistState.StateContent -> contentState(playlistState.playlists)
+        if (playlistState is PlaylistState.StateContent) {
+            contentState(playlistState.playlists)
+        }
+        if (playlistState is PlaylistState.StateEmpty) {
+            emptyState()
         }
     }
 
-    private fun emptyState() {
-        emptyPlaylistImage.isVisible = true
-        emptyPlaylistMessage.isVisible = true
-    }
-
     private fun contentState(playlists: List<Playlist>) {
+        recyclerView.isVisible = true
         emptyPlaylistImage.isVisible = false
         emptyPlaylistMessage.isVisible = false
         val playlistAdapter = PlaylistAdapter(playlists, this)
         recyclerView.adapter = playlistAdapter
     }
 
+    private fun emptyState() {
+        recyclerView.isVisible = false
+        emptyPlaylistImage.isVisible = true
+        emptyPlaylistMessage.isVisible = true
+    }
+
     override fun onPlaylistClick(playlist: Playlist) {
+        val bundle = Bundle()
+        bundle.putString("Argument", playlist.id.toString())
+        findNavController().navigate(R.id.playlistFragment, bundle)
     }
 }

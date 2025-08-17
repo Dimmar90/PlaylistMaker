@@ -16,7 +16,6 @@ class MediaAdapter(fragmentManager: FragmentManager, lifecycle: Lifecycle) :
         return when (position) {
             0 -> FavoritesFragment.newInstance()
             else -> PlaylistsFragment.newInstance()
-
         }
     }
 }

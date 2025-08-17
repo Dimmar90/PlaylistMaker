@@ -2,9 +2,12 @@ package com.practicum.playlistmaker.player.ui
 
 import android.annotation.SuppressLint
 import android.app.Application
-import android.util.Log
+import android.content.Context
+import android.content.res.Configuration
+import android.graphics.drawable.Drawable
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.core.content.res.ResourcesCompat
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -104,10 +107,11 @@ class PlayerViewModel(
         }
     }
 
-    fun addTrackCover(trackCover: ImageView) {
+    fun addTrackCover(trackCover: ImageView, drawable: Drawable?) {
+
         Glide.with(application.applicationContext)
             .load(track.artworkUrl100.replaceAfterLast('/', "512x512bb.jpg"))
-            .placeholder(R.drawable.placeholder_icon)
+            .placeholder(drawable)
             .centerInside()
             .transform(RoundedCorners(8))
             .into(trackCover)

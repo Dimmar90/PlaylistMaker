@@ -1,12 +1,16 @@
 package com.practicum.playlistmaker.player.ui
 
 import android.annotation.SuppressLint
+import android.content.Context
+import android.content.res.Configuration
+import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.activity.OnBackPressedCallback
+import androidx.core.content.res.ResourcesCompat
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import com.google.android.material.button.MaterialButton
@@ -48,7 +52,21 @@ class PlayerFragment : Fragment() {
         val trackGenre = binding.trackPrimaryGenreName
         val trackCountry = binding.trackCountry
 
-        viewModel.addTrackCover(trackCover)
+        val drawable : Drawable? = if (checkNightModeOn(view.context)) {
+            ResourcesCompat.getDrawable(
+                view.context.resources,
+                R.drawable.placeholder_dark,
+                null
+            )
+        } else {
+            ResourcesCompat.getDrawable(
+                view.context.resources,
+                R.drawable.placeholder,
+                null
+            )
+        }
+
+        viewModel.addTrackCover(trackCover, drawable)
 
         viewModel.addTrackTitles(
             trackName,
@@ -71,7 +89,7 @@ class PlayerFragment : Fragment() {
         returnButton.setOnClickListener {
             viewModel.pausePlayer()
             viewModel.resetPlayer()
-            findNavController().navigate(R.id.action_playerActivity_to_searchFragment)
+            findNavController().navigateUp()
         }
 
         val callback = object : OnBackPressedCallback(true) {
@@ -82,6 +100,15 @@ class PlayerFragment : Fragment() {
             }
         }
         requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, callback)
+    }
+
+    private fun checkNightModeOn(context: Context): Boolean {
+        var isNightModeOn = false
+        when (context.resources?.configuration?.uiMode?.and(Configuration.UI_MODE_NIGHT_MASK)) {
+            Configuration.UI_MODE_NIGHT_YES -> isNightModeOn = true
+            Configuration.UI_MODE_NIGHT_NO -> isNightModeOn = false
+        }
+        return isNightModeOn
     }
 
     private fun putPlayerState(state: PlayerState) {
